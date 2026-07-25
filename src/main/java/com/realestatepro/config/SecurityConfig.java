@@ -1,6 +1,7 @@
 package com.realestatepro.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,12 +17,16 @@ import com.realestatepro.security.CustomUserDetailsService;
 import com.realestatepro.security.JwtAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    
+    
+    
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -36,7 +41,6 @@ public class SecurityConfig {
                     .requestMatchers(
                             "/api/auth/**",
                             "/api/users/register",
-                            "/api/roles/**",
                             "/error"
                     ).permitAll()
 

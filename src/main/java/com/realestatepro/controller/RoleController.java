@@ -1,6 +1,7 @@
 package com.realestatepro.controller;
 
 import java.util.List;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,8 @@ public class RoleController {
 
     private final RoleService roleService;
 
+   
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<RoleResponse>> createRole(
             @Valid @RequestBody RoleRequest request) {
@@ -35,6 +38,7 @@ public class RoleController {
                         .build());
     }
 
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<RoleResponse>> getRoleById(@PathVariable String id) {
 
@@ -48,8 +52,9 @@ public class RoleController {
                         .build());
     }
 
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRoles() {
+    public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRoles(){
 
         List<RoleResponse> response = roleService.getAllRoles();
 
@@ -61,6 +66,7 @@ public class RoleController {
                         .build());
     }
 
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<RoleResponse>> updateRole(
             @PathVariable String id,
@@ -76,6 +82,7 @@ public class RoleController {
                         .build());
     }
 
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteRole(@PathVariable String id) {
 
