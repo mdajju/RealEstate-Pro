@@ -1,6 +1,7 @@
 package com.realestatepro.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
@@ -20,5 +21,14 @@ public interface StateMapper {
 
     // Convert Entity -> Response DTO
     StateResponse toResponse(State state);
+    
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "active", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    void updateEntity(
+            StateRequest request,
+            @MappingTarget State state
+    );
 
 }

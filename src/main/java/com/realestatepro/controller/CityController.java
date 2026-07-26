@@ -1,6 +1,7 @@
 package com.realestatepro.controller;
 
 import java.util.List;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,8 @@ public class CityController {
 
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
+    
     public ResponseEntity<ApiResponse<CityResponse>> createCity(
             @Valid @RequestBody CityRequest request) {
 
@@ -43,6 +46,7 @@ public class CityController {
 
 
 
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','AGENT','OWNER','CUSTOMER')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<CityResponse>>> getAllCities() {
 
@@ -60,6 +64,7 @@ public class CityController {
 
 
 
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','AGENT','OWNER','CUSTOMER')")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<CityResponse>> getCityById(
             @PathVariable String id) {
@@ -78,6 +83,7 @@ public class CityController {
 
 
 
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CityResponse>> updateCity(
             @PathVariable String id,
@@ -97,6 +103,7 @@ public class CityController {
 
 
 
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteCity(
             @PathVariable String id) {
