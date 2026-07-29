@@ -1,6 +1,9 @@
 package com.realestatepro.service.impl;
 
 import java.util.List;
+import com.realestatepro.entity.User;
+import com.realestatepro.repository.UserRepository;
+import com.realestatepro.security.SecurityUtil;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -25,6 +28,8 @@ public class PropertyServiceImpl implements PropertyService {
     private final PropertyRepository propertyRepository;
 
     private final PropertyMapper propertyMapper;
+    
+    private final UserRepository userRepository;
 
 
 
@@ -35,7 +40,7 @@ public class PropertyServiceImpl implements PropertyService {
         if(propertyRepository.existsByTitle(request.getTitle())) {
 
         	throw new ResourceAlreadyExistsException(
-        	        "Property already exists."
+        	        "Property already exists with title : " + request.getTitle()
         	);
         }
 
@@ -59,11 +64,10 @@ public class PropertyServiceImpl implements PropertyService {
         Property property =
                 propertyRepository.findById(id)
                 .orElseThrow(() ->
-                    new ResourceNotFoundException(
-                        "Property not found."
-                    )
-                );
-
+                new ResourceNotFoundException(
+                    "Property not found with id : " + id
+                )
+            );
 
         return propertyMapper.toResponse(property);
     }
@@ -75,13 +79,70 @@ public class PropertyServiceImpl implements PropertyService {
     public List<PropertyResponse> getAllProperties() {
 
 
-        return propertyRepository.findByActiveTrue()
+        String email =
+                SecurityUtil.getCurrentUserEmail();
+
+
+
+        User user =
+                userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found"
+                        )
+                );
+
+
+
+        String role =
+                user.getRole()
+                .getRoleName()
+                .name();
+
+
+
+        List<Property> properties;
+
+
+
+        if(role.equals("SUPER_ADMIN")
+                || role.equals("ADMIN")) {
+
+
+            properties =
+                    propertyRepository
+                    .findByActiveTrue();
+
+
+        }
+        else if(role.equals("OWNER")) {
+
+
+            properties =
+                    propertyRepository
+                    .findByOwnerIdAndActiveTrue(
+                            user.getId()
+                    );
+
+
+        }
+        else {
+
+
+            properties =
+                    propertyRepository
+                    .findByActiveTrue();
+
+        }
+
+
+
+        return properties
                 .stream()
                 .map(propertyMapper::toResponse)
                 .collect(Collectors.toList());
 
     }
-
 
 
 
@@ -96,9 +157,20 @@ public class PropertyServiceImpl implements PropertyService {
                 propertyRepository.findById(id)
                 .orElseThrow(() ->
                     new ResourceNotFoundException(
-                        "Property not found."
+                        "Property not found with id : " + id
                     )
                 );
+        
+        
+        
+        if (!property.getTitle().equals(request.getTitle())
+                && propertyRepository.existsByTitle(request.getTitle())) {
+
+            throw new ResourceAlreadyExistsException(
+                    "Property already exists with title : "
+                    + request.getTitle()
+            );
+        }
 
 
         propertyMapper.updateEntity(
@@ -125,10 +197,10 @@ public class PropertyServiceImpl implements PropertyService {
         Property property =
                 propertyRepository.findById(id)
                 .orElseThrow(() ->
-                    new ResourceNotFoundException(
-                        "Property not found."
-                    )
-                );
+                new ResourceNotFoundException(
+                    "Property not found with id : " + id
+                )
+            );
 
 
         property.setActive(false);

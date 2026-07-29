@@ -1,10 +1,10 @@
 package com.realestatepro.controller;
 
 import java.util.List;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,9 +26,9 @@ public class CityController {
     private final CityService cityService;
 
 
+    // CREATE CITY
     @PostMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
-    
     public ResponseEntity<ApiResponse<CityResponse>> createCity(
             @Valid @RequestBody CityRequest request) {
 
@@ -46,8 +46,9 @@ public class CityController {
 
 
 
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','AGENT','OWNER','CUSTOMER')")
+    // GET ALL CITIES
     @GetMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','AGENT','OWNER','CUSTOMER')")
     public ResponseEntity<ApiResponse<List<CityResponse>>> getAllCities() {
 
 
@@ -64,13 +65,36 @@ public class CityController {
 
 
 
+    // GET CITIES BY STATE ID
+    @GetMapping("/state/{stateId}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','AGENT','OWNER','CUSTOMER')")
+    public ResponseEntity<ApiResponse<List<CityResponse>>> getCitiesByState(
+            @PathVariable String stateId) {
+
+
+        List<CityResponse> response =
+                cityService.getCitiesByState(stateId);
+
+
+        return ResponseEntity.ok(
+                ApiResponse.<List<CityResponse>>builder()
+                        .success(true)
+                        .message("Cities fetched successfully")
+                        .data(response)
+                        .build());
+    }
+
+
+
+    // GET CITY BY ID
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','AGENT','OWNER','CUSTOMER')")
     public ResponseEntity<ApiResponse<CityResponse>> getCityById(
             @PathVariable String id) {
 
 
-        CityResponse response = cityService.getCityById(id);
+        CityResponse response =
+                cityService.getCityById(id);
 
 
         return ResponseEntity.ok(
@@ -83,14 +107,16 @@ public class CityController {
 
 
 
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
+    // UPDATE CITY
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
     public ResponseEntity<ApiResponse<CityResponse>> updateCity(
             @PathVariable String id,
             @Valid @RequestBody CityRequest request) {
 
 
-        CityResponse response = cityService.updateCity(id, request);
+        CityResponse response =
+                cityService.updateCity(id, request);
 
 
         return ResponseEntity.ok(
@@ -103,8 +129,9 @@ public class CityController {
 
 
 
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
+    // DELETE CITY
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteCity(
             @PathVariable String id) {
 

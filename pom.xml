@@ -9,7 +9,7 @@
 		<version>3.5.5</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.example</groupId>
+<groupId>com.realestatepro</groupId>
 	<artifactId>RealEstate_Pro</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>RealEstate_Pro</name>
@@ -114,6 +114,16 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
+		
+		
+		<!-- Swagger OpenAPI Documentation -->
+
+<dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.8.9</version>
+</dependency>
 
 	</dependencies>
 

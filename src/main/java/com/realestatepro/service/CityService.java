@@ -16,4 +16,6 @@ public interface CityService {
     CityResponse updateCity(String id, CityRequest request);
 
     void deleteCity(String id);
+    
+    List<CityResponse> getCitiesByState(String stateId);
 }

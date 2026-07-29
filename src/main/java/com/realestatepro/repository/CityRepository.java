@@ -23,5 +23,7 @@ public interface CityRepository extends MongoRepository<City, String> {
 
 
     List<City> findByActiveTrue();
+    
+    
 
 }

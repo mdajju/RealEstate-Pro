@@ -51,11 +51,14 @@ public class CityServiceImpl implements CityService {
 
 
 
+
     @Override
     public CityResponse createCity(CityRequest request) {
 
 
-        if (cityRepository.existsByCityNameIgnoreCaseAndActiveTrue(request.getCityName())) {
+        if (cityRepository.existsByCityNameIgnoreCaseAndActiveTrue(
+                request.getCityName())) {
+
 
             throw new DuplicateResourceException(
                     "City already exists."
@@ -71,6 +74,7 @@ public class CityServiceImpl implements CityService {
 
         return mapCityResponse(savedCity);
     }
+
 
 
 
@@ -177,6 +181,25 @@ public class CityServiceImpl implements CityService {
 
 
         cityRepository.save(city);
+    }
+
+
+
+
+
+    @Override
+    public List<CityResponse> getCitiesByState(String stateId) {
+
+
+        List<City> cities =
+                cityRepository.findByStateId(stateId);
+
+
+
+        return cities.stream()
+                .filter(City::getActive)
+                .map(this::mapCityResponse)
+                .toList();
     }
 
 }

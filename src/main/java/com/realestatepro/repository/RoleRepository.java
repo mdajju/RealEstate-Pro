@@ -11,8 +11,14 @@ import com.realestatepro.enums.RoleType;
 @Repository
 public interface RoleRepository extends MongoRepository<Role, String> {
 
+    /**
+     * Find role by role type
+     */
     Optional<Role> findByRoleName(RoleType roleName);
 
+    /**
+     * Check whether role exists
+     */
     boolean existsByRoleName(RoleType roleName);
 
 }

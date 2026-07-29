@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import com.realestatepro.entity.Property;
+import com.realestatepro.enums.PropertyStatus;
 
 
 @Repository
@@ -29,8 +30,33 @@ public interface PropertyRepository extends MongoRepository<Property, String> {
 
 
     List<Property> findByActiveTrue();
+    
+    
+    List<Property> findByStatus(PropertyStatus status);
 
 
     boolean existsByTitle(String title);
+    
+    long countByActiveTrue();
+
+    long countByStatus(PropertyStatus status);
+
+    long countByOwnerId(String ownerId);
+
+    long countByOwnerIdAndStatus(
+            String ownerId,
+            PropertyStatus status
+    );
+    
+    long countByOwnerIdAndActiveTrue(String ownerId);
+
+    long countByOwnerIdAndStatusAndActiveTrue(
+            String ownerId,
+            PropertyStatus status
+    );
+    
+    List<Property> findByOwnerIdAndActiveTrue(String ownerId);
+    
+    
 
 }

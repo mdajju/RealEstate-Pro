@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 import com.realestatepro.enums.PropertyStatus;
 
@@ -15,7 +15,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Document(collection = "properties")
 @Data
 @Builder
@@ -23,93 +22,75 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Property {
 
-
+    @Id
     private String id;
-
-
-    private String title;
-
-
-    private String description;
-
-
-    /*
-     * Reference IDs
-     */
-
-    private String propertyTypeId;
-
-
-    private String ownerId;
-
-
-    private String agentId;
-
-
-    private String stateId;
-
-
-    private String cityId;
-
-
-    /*
-     * Location Details
-     */
-
-    private String address;
-
-
-    private Double latitude;
-
-
-    private Double longitude;
-
 
     /*
      * Property Details
      */
+    private String title;
 
+    private String description;
+
+    /*
+     * Reference IDs
+     */
+    private String propertyTypeId;
+
+    private String ownerId;
+
+    private String agentId;
+
+    private String stateId;
+
+    private String cityId;
+
+    /*
+     * Location Details
+     */
+    private String address;
+
+    private Double latitude;
+
+    private Double longitude;
+
+    /*
+     * Property Specifications
+     */
     private Double price;
-
 
     private Double area;
 
-
     private Integer bedrooms;
-
 
     private Integer bathrooms;
 
-
     private String facing;
 
-
+    /*
+     * Property Status
+     */
     private PropertyStatus status;
 
-
     /*
-     * Media and Features
+     * Images & Amenities
      */
-
     private List<String> images;
-
 
     private List<String> amenities;
 
-
     /*
-     * Record Status
+     * Soft Delete
      */
-
     @Builder.Default
     private Boolean active = true;
 
-
+    /*
+     * Audit Fields
+     */
     @CreatedDate
     private LocalDateTime createdAt;
 
-
     @LastModifiedDate
     private LocalDateTime updatedAt;
-
 }

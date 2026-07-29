@@ -21,6 +21,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class User {
+	
+	@Builder.Default
+	private Boolean active = true;
 
     @Id
     private String id;
