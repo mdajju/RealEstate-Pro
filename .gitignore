@@ -29,5 +29,8 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+# Java practice files
+/java/
+
 ### VS Code ###
 .vscode/
