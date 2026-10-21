@@ -1,3 +1,4 @@
+
 package com.realestatepro.config;
 
 import org.springframework.context.annotation.Bean;
@@ -28,43 +29,52 @@ public class SecurityConfig {
             HttpSecurity http) throws Exception {
 
         http
-
-            // Disable CSRF
             .csrf(csrf -> csrf.disable())
 
-            // Stateless Session
             .sessionManagement(session ->
-                    session.sessionCreationPolicy(
-                            SessionCreationPolicy.STATELESS
-                    )
+                session.sessionCreationPolicy(
+                    SessionCreationPolicy.STATELESS
+                )
             )
 
-            // Authorization
             .authorizeHttpRequests(auth -> auth
 
-                    // Public APIs
-                    .requestMatchers(
-                            "/api/auth/**",
-                            "/api/users/register"
-                    ).permitAll()
+                // Public login and registration
+                .requestMatchers(
+                    "/api/auth/**",
+                    "/api/users/register"
+                ).permitAll()
 
-                    // Swagger APIs
-                    .requestMatchers(
-                            "/swagger-ui/**",
-                            "/swagger-ui.html",
-                            "/v3/api-docs/**",
-                            "/v3/api-docs.yaml"
-                    ).permitAll()
+                // Public property browsing
+                .requestMatchers(
+                    org.springframework.http.HttpMethod.GET,
+                    "/api/properties",
+                    "/api/properties/**",
+                    "/api/property-types",
+                    "/api/property-types/**",
+                    "/api/states",
+                    "/api/states/**",
+                    "/api/cities",
+                    "/api/cities/**",
+                    "/api/property-images/property/**",
+                    "/api/reviews/property/**"
+                ).permitAll()
 
-                    // All remaining APIs require authentication
-                    .anyRequest()
-                    .authenticated()
+                // Public Swagger documentation
+                .requestMatchers(
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/v3/api-docs/**",
+                    "/v3/api-docs.yaml"
+                ).permitAll()
+
+                // All remaining APIs require authentication
+                .anyRequest().authenticated()
             )
 
-            // JWT Filter
             .addFilterBefore(
-                    jwtAuthenticationFilter,
-                    UsernamePasswordAuthenticationFilter.class
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class
             );
 
         return http.build();
@@ -77,5 +87,4 @@ public class SecurityConfig {
 
         return configuration.getAuthenticationManager();
     }
-
 }
