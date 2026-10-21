@@ -1,5 +1,5 @@
-package com.realestatepro.controller;
 
+package com.realestatepro.controller;
 
 import java.util.List;
 
@@ -15,270 +15,176 @@ import com.realestatepro.service.PropertyService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
-
 
 @RestController
 @RequestMapping("/api/properties")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @Tag(
-        name = "Property Management",
-        description = "APIs for creating, updating, fetching and deleting properties"
+    name = "Property Management",
+    description = "APIs for creating, updating, fetching and deleting properties"
 )
 public class PropertyController {
 
-
-
     private final PropertyService propertyService;
-
-
-
-
 
     /*
      * Create Property
      */
     @Operation(
-            summary = "Create property",
-            description = "Owner/Admin can create a new property"
+        summary = "Create property",
+        description = "Owner/Admin can create a new property"
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "201",
-            description = "Property created successfully"
+        responseCode = "201",
+        description = "Property created successfully"
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "400",
-            description = "Invalid property data"
+        responseCode = "400",
+        description = "Invalid property data"
     )
-    @PreAuthorize(
-            "hasAnyRole('SUPER_ADMIN','ADMIN','OWNER')"
-    )
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'OWNER')")
     @PostMapping
     public ResponseEntity<ApiResponse<PropertyResponse>> createProperty(
             @Valid @RequestBody PropertyRequest request) {
 
-
-
         PropertyResponse response =
                 propertyService.createProperty(request);
-
-
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(
-                        ApiResponse.<PropertyResponse>builder()
+                    ApiResponse.<PropertyResponse>builder()
                         .success(true)
-                        .message(
-                                "Property created successfully"
-                        )
+                        .message("Property created successfully")
                         .data(response)
                         .build()
                 );
-
     }
-
-
-
-
-
-
 
     /*
      * Get Property By Id
+     * Public access for property browsing
      */
     @Operation(
-            summary = "Get property by id",
-            description = "Fetch property details using property id"
+        summary = "Get property by id",
+        description = "Fetch property details using property id"
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "200",
-            description = "Property fetched successfully"
+        responseCode = "200",
+        description = "Property fetched successfully"
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "404",
-            description = "Property not found"
+        responseCode = "404",
+        description = "Property not found"
     )
-    @PreAuthorize(
-            "hasAnyRole('SUPER_ADMIN','ADMIN','OWNER','AGENT','CUSTOMER')"
-    )
+    @PreAuthorize("permitAll()")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PropertyResponse>> getPropertyById(
             @PathVariable String id) {
 
-
-
         PropertyResponse response =
                 propertyService.getPropertyById(id);
 
-
-
         return ResponseEntity.ok(
-
-                ApiResponse.<PropertyResponse>builder()
+            ApiResponse.<PropertyResponse>builder()
                 .success(true)
-                .message(
-                        "Property fetched successfully"
-                )
+                .message("Property fetched successfully")
                 .data(response)
                 .build()
-
         );
-
     }
-
-
-
-
-
-
-
 
     /*
      * Get All Properties
+     * Public access for property browsing
      */
     @Operation(
-            summary = "Get all properties",
-            description = "Fetch all active properties"
+        summary = "Get all properties",
+        description = "Fetch all active properties"
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "200",
-            description = "Properties fetched successfully"
+        responseCode = "200",
+        description = "Properties fetched successfully"
     )
-    @PreAuthorize(
-            "hasAnyRole('SUPER_ADMIN','ADMIN','OWNER','AGENT','CUSTOMER')"
-    )
+    @PreAuthorize("permitAll()")
     @GetMapping
     public ResponseEntity<ApiResponse<List<PropertyResponse>>> getAllProperties() {
-
-
 
         List<PropertyResponse> response =
                 propertyService.getAllProperties();
 
-
-
         return ResponseEntity.ok(
-
-                ApiResponse.<List<PropertyResponse>>builder()
+            ApiResponse.<List<PropertyResponse>>builder()
                 .success(true)
-                .message(
-                        "Properties fetched successfully"
-                )
+                .message("Properties fetched successfully")
                 .data(response)
                 .build()
-
         );
-
     }
-
-
-
-
-
-
-
-
 
     /*
      * Update Property
      */
     @Operation(
-            summary = "Update property",
-            description = "Update existing property details"
+        summary = "Update property",
+        description = "Update existing property details"
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "200",
-            description = "Property updated successfully"
+        responseCode = "200",
+        description = "Property updated successfully"
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "404",
-            description = "Property not found"
+        responseCode = "404",
+        description = "Property not found"
     )
-    @PreAuthorize(
-            "hasAnyRole('SUPER_ADMIN','ADMIN','OWNER','AGENT')"
-    )
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'OWNER', 'AGENT')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<PropertyResponse>> updateProperty(
             @PathVariable String id,
             @Valid @RequestBody PropertyRequest request) {
 
-
-
         PropertyResponse response =
-                propertyService.updateProperty(
-                        id,
-                        request
-                );
-
-
+                propertyService.updateProperty(id, request);
 
         return ResponseEntity.ok(
-
-                ApiResponse.<PropertyResponse>builder()
+            ApiResponse.<PropertyResponse>builder()
                 .success(true)
-                .message(
-                        "Property updated successfully"
-                )
+                .message("Property updated successfully")
                 .data(response)
                 .build()
-
         );
-
     }
-
-
-
-
-
-
-
-
 
     /*
      * Delete Property
      */
     @Operation(
-            summary = "Delete property",
-            description = "Soft delete property"
+        summary = "Delete property",
+        description = "Soft delete property"
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "200",
-            description = "Property deleted successfully"
+        responseCode = "200",
+        description = "Property deleted successfully"
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "404",
-            description = "Property not found"
+        responseCode = "404",
+        description = "Property not found"
     )
-    @PreAuthorize(
-            "hasAnyRole('SUPER_ADMIN','ADMIN')"
-    )
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteProperty(
             @PathVariable String id) {
 
-
-
         propertyService.deleteProperty(id);
 
-
-
         return ResponseEntity.ok(
-
-                ApiResponse.<String>builder()
+            ApiResponse.<String>builder()
                 .success(true)
-                .message(
-                        "Property deleted successfully"
-                )
+                .message("Property deleted successfully")
                 .build()
-
         );
-
     }
-
-
 }
