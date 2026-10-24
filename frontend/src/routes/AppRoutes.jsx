@@ -141,6 +141,18 @@ function AppRoutes() {
       />
 
 
+      {/* PUBLIC PROPERTY LIST */}
+      <Route
+        path="/properties"
+        element={<CustomerProperties />}
+      />
+
+      {/* PUBLIC PROPERTY DETAILS */}
+      <Route
+        path="/properties/:id"
+        element={<CustomerPropertyDetails />}
+      />
+
       {/* =====================================================
           ADMIN PROTECTED ROUTES
       ===================================================== */}
