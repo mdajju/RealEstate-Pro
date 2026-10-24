@@ -871,7 +871,7 @@ function Index() {
       params.toString();
 
     navigate(
-      `/customer/properties${
+      `/properties${
         queryString
           ? `?${queryString}`
           : ""
@@ -995,7 +995,7 @@ function Index() {
                 }}
                 onClick={() =>
                   navigate(
-                    "/customer/properties"
+                    "/properties"
                   )
                 }
               >
@@ -1527,7 +1527,7 @@ function Index() {
                       <Card
                         onClick={() =>
                           navigate(
-                            `/customer/properties?propertyType=${encodeURIComponent(
+                            `/properties?propertyType=${encodeURIComponent(
                               typeName
                             )}`
                           )
@@ -1668,7 +1668,7 @@ function Index() {
               variant="outlined"
               onClick={() =>
                 navigate(
-                  "/customer/properties"
+                  "/properties"
                 )
               }
               sx={{
@@ -2003,13 +2003,13 @@ function Index() {
                             onClick={() => {
                               if (isDemo) {
                                 navigate(
-                                  "/customer/properties"
+                                  "/properties"
                                 );
                                 return;
                               }
 
                               navigate(
-                                `/customer/properties/${propertyId}`
+                                `/properties/${propertyId}`
                               );
                             }}
                             sx={{
@@ -2260,7 +2260,7 @@ function Index() {
                 text:
                   "Search properties, view details, book visits, make payments, save favourites, submit reviews and manage notifications.",
                 action:
-                  "/customer/properties",
+                  "/properties",
                 button:
                   "Explore Properties",
               },
@@ -2444,7 +2444,7 @@ function Index() {
                 variant="contained"
                 onClick={() =>
                   navigate(
-                    "/customer/properties"
+                    "/properties"
                   )
                 }
                 endIcon={
@@ -2576,7 +2576,7 @@ function Index() {
                 }}
                 onClick={() =>
                   navigate(
-                    "/customer/properties"
+                    "/properties"
                   )
                 }
               >
