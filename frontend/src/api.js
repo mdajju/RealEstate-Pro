@@ -2,12 +2,13 @@ import axios from "axios";
 
 // =====================================================
 // AXIOS INSTANCE
-// =====================================================
+// ====================================================
 
 const api = axios.create({
-  baseURL: "http://localhost:9090/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://realestate-pro-backend.onrender.com/api",
   timeout: 15000,
 });
+
 
 
 // =====================================================
