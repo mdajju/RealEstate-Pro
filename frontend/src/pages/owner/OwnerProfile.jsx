@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -21,6 +22,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Paper,
 } from "@mui/material";
 
 import {
@@ -39,6 +41,9 @@ import {
   PhotoCamera,
   Close,
   CloudUpload,
+  Security,
+  AccountCircle,
+  CheckCircle,
 } from "@mui/icons-material";
 
 import {
@@ -51,7 +56,7 @@ import {
 // BACKEND URL
 // =====================================================
 
-const BACKEND_URL = "http://localhost:9090";
+const BACKEND_URL = "https://realestate-pro-backend.onrender.com";
 
 // =====================================================
 // OWNER PROFILE
@@ -107,12 +112,10 @@ function OwnerProfile() {
       return "";
     }
 
-    // Blob URL
     if (profileImage.startsWith("blob:")) {
       return profileImage;
     }
 
-    // Already complete URL
     if (
       profileImage.startsWith("http://") ||
       profileImage.startsWith("https://")
@@ -120,17 +123,14 @@ function OwnerProfile() {
       return profileImage;
     }
 
-    // Already starts with /uploads
     if (profileImage.startsWith("/uploads/")) {
       return `${BACKEND_URL}${profileImage}`;
     }
 
-    // Already starts with uploads/
     if (profileImage.startsWith("uploads/")) {
       return `${BACKEND_URL}/${profileImage}`;
     }
 
-    // Filename only
     return `${BACKEND_URL}/uploads/${profileImage}`;
   };
 
@@ -196,7 +196,6 @@ function OwnerProfile() {
             user?.address || "",
         });
 
-        // Save latest user
         localStorage.setItem(
           "user",
           JSON.stringify(user)
@@ -334,7 +333,6 @@ function OwnerProfile() {
           address:
             formData.address,
 
-          // Preserve existing image
           profileImage:
             profile?.profileImage || "",
         });
@@ -431,16 +429,11 @@ function OwnerProfile() {
     const file =
       event.target.files?.[0];
 
-    // Reset input
     event.target.value = "";
 
     if (!file) {
       return;
     }
-
-    // =================================================
-    // VALIDATE FILE TYPE
-    // =================================================
 
     if (!file.type.startsWith("image/")) {
 
@@ -450,10 +443,6 @@ function OwnerProfile() {
 
       return;
     }
-
-    // =================================================
-    // VALIDATE FILE SIZE
-    // =================================================
 
     const maxSize =
       5 * 1024 * 1024;
@@ -467,10 +456,6 @@ function OwnerProfile() {
       return;
     }
 
-    // =================================================
-    // LOCAL PREVIEW
-    // =================================================
-
     const previewUrl =
       URL.createObjectURL(file);
 
@@ -479,10 +464,6 @@ function OwnerProfile() {
     setError("");
 
     setSuccess("");
-
-    // =================================================
-    // UPLOAD
-    // =================================================
 
     try {
 
@@ -501,24 +482,12 @@ function OwnerProfile() {
         const updatedUser =
           response.data;
 
-        // ---------------------------------------------
-        // Update profile
-        // ---------------------------------------------
-
         setProfile(updatedUser);
-
-        // ---------------------------------------------
-        // Update localStorage
-        // ---------------------------------------------
 
         localStorage.setItem(
           "user",
           JSON.stringify(updatedUser)
         );
-
-        // ---------------------------------------------
-        // Clear temporary preview
-        // ---------------------------------------------
 
         setImagePreview("");
 
@@ -605,10 +574,12 @@ function OwnerProfile() {
 
       <Box
         sx={{
-          minHeight: "70vh",
+          minHeight: "100vh",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          background:
+            "linear-gradient(135deg, #f5f7fb 0%, #eef4ff 100%)",
         }}
       >
 
@@ -617,12 +588,36 @@ function OwnerProfile() {
           alignItems="center"
         >
 
-          <CircularProgress />
+          <Box
+            sx={{
+              width: 80,
+              height: 80,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background:
+                "linear-gradient(135deg, #1976d2, #42a5f5)",
+              boxShadow:
+                "0 15px 35px rgba(25,118,210,0.25)",
+            }}
+          >
+
+            <CircularProgress
+              size={38}
+              thickness={4}
+              sx={{
+                color: "#ffffff",
+              }}
+            />
+
+          </Box>
 
           <Typography
             color="text.secondary"
+            fontWeight={500}
           >
-            Loading profile...
+            Loading your profile...
           </Typography>
 
         </Stack>
@@ -642,6 +637,15 @@ function OwnerProfile() {
     );
 
   // ===================================================
+  // FULL NAME
+  // ===================================================
+
+  const fullName =
+    `${profile?.firstName || ""} ${
+      profile?.lastName || ""
+    }`.trim() || "Owner";
+
+  // ===================================================
   // MAIN UI
   // ===================================================
 
@@ -650,899 +654,1395 @@ function OwnerProfile() {
     <Box
       sx={{
         minHeight: "100vh",
-        backgroundColor: "#f5f7fb",
+        background:
+          "linear-gradient(135deg, #f6f8fc 0%, #eef4ff 50%, #f8fafc 100%)",
         p: {
           xs: 2,
+          sm: 3,
           md: 4,
         },
       }}
     >
 
       {/* =================================================
-          HEADER
+          TOP HEADER
       ================================================= */}
 
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 4,
-          flexWrap: "wrap",
-          gap: 2,
+          maxWidth: 1400,
+          mx: "auto",
         }}
       >
 
-        <Box>
-
-          <Typography
-            variant="h4"
-            fontWeight={700}
-          >
-            My Profile
-          </Typography>
-
-          <Typography
-            variant="body1"
-            color="text.secondary"
-            sx={{
-              mt: 0.5,
-            }}
-          >
-            Manage your owner account information
-          </Typography>
-
-        </Box>
-
-        <Stack
-          direction="row"
-          spacing={1}
+        <Card
+          sx={{
+            mb: 3,
+            borderRadius: 4,
+            overflow: "hidden",
+            border: "1px solid rgba(255,255,255,0.8)",
+            boxShadow:
+              "0 10px 35px rgba(30,60,90,0.08)",
+          }}
         >
 
-          <Tooltip title="Refresh profile">
+          <Box
+            sx={{
+              position: "relative",
+              minHeight: {
+                xs: 220,
+                md: 200,
+              },
+              p: {
+                xs: 3,
+                md: 4,
+              },
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 3,
+              flexWrap: "wrap",
+              background:
+                "linear-gradient(135deg, #0d47a1 0%, #1976d2 45%, #42a5f5 100%)",
+              overflow: "hidden",
+            }}
+          >
 
-            <IconButton
-              onClick={fetchProfile}
-              disabled={uploadingImage || saving}
+            {/* Decorative circles */}
+
+            <Box
               sx={{
-                backgroundColor: "#ffffff",
-                border: "1px solid #e0e0e0",
+                position: "absolute",
+                width: 260,
+                height: 260,
+                borderRadius: "50%",
+                background:
+                  "rgba(255,255,255,0.08)",
+                right: -80,
+                top: -120,
+              }}
+            />
+
+            <Box
+              sx={{
+                position: "absolute",
+                width: 180,
+                height: 180,
+                borderRadius: "50%",
+                background:
+                  "rgba(255,255,255,0.07)",
+                left: "45%",
+                bottom: -100,
+              }}
+            />
+
+            <Box
+              sx={{
+                position: "relative",
+                zIndex: 2,
               }}
             >
 
-              <Refresh />
+              <Stack
+                direction="row"
+                spacing={2}
+                alignItems="center"
+              >
 
-            </IconButton>
+                <Avatar
+                  src={displayedImage}
+                  sx={{
+                    width: {
+                      xs: 70,
+                      md: 82,
+                    },
+                    height: {
+                      xs: 70,
+                      md: 82,
+                    },
+                    fontSize: 28,
+                    fontWeight: 700,
+                    border:
+                      "4px solid rgba(255,255,255,0.75)",
+                    boxShadow:
+                      "0 10px 25px rgba(0,0,0,0.18)",
+                    background:
+                      "linear-gradient(135deg, #ffffff, #e3f2fd)",
+                    color: "#1565c0",
+                  }}
+                  imgProps={{
+                    onError: handleImageError,
+                  }}
+                >
+                  {!displayedImage &&
+                    getInitials()}
+                </Avatar>
 
-          </Tooltip>
+                <Box>
 
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBack />}
-            onClick={() =>
-              navigate("/owner/dashboard")
-            }
-          >
-            Dashboard
-          </Button>
+                  <Typography
+                    variant="overline"
+                    sx={{
+                      color:
+                        "rgba(255,255,255,0.75)",
+                      fontWeight: 700,
+                      letterSpacing: 1.5,
+                    }}
+                  >
+                    OWNER ACCOUNT
+                  </Typography>
 
-        </Stack>
+                  <Typography
+                    variant="h4"
+                    fontWeight={800}
+                    sx={{
+                      color: "#ffffff",
+                      lineHeight: 1.15,
+                      fontSize: {
+                        xs: "1.8rem",
+                        md: "2.25rem",
+                      },
+                    }}
+                  >
+                    {fullName}
+                  </Typography>
 
-      </Box>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      mt: 1,
+                      flexWrap: "wrap",
+                    }}
+                  >
 
-      {/* =================================================
-          ALERTS
-      ================================================= */}
+                    <Chip
+                      size="small"
+                      label={
+                        profile?.status ||
+                        "ACTIVE"
+                      }
+                      sx={{
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        backgroundColor:
+                          "rgba(255,255,255,0.16)",
+                        border:
+                          "1px solid rgba(255,255,255,0.25)",
+                      }}
+                    />
 
-      {error && (
+                    <Chip
+                      size="small"
+                      icon={
+                        <Verified
+                          sx={{
+                            color:
+                              "#ffffff !important",
+                          }}
+                        />
+                      }
+                      label="Verified"
+                      sx={{
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        backgroundColor:
+                          "rgba(255,255,255,0.16)",
+                        border:
+                          "1px solid rgba(255,255,255,0.25)",
+                      }}
+                    />
 
-        <Alert
-          severity="error"
-          sx={{
-            mb: 3,
-          }}
-          onClose={() => setError("")}
-        >
-          {error}
-        </Alert>
+                  </Stack>
 
-      )}
+                </Box>
 
-      {success && (
+              </Stack>
 
-        <Alert
-          severity="success"
-          sx={{
-            mb: 3,
-          }}
-          onClose={() => setSuccess("")}
-        >
-          {success}
-        </Alert>
+            </Box>
 
-      )}
+            {/* Header actions */}
 
-      {/* =================================================
-          PROFILE CONTENT
-      ================================================= */}
+            <Stack
+              direction="row"
+              spacing={1.5}
+              sx={{
+                position: "relative",
+                zIndex: 2,
+              }}
+            >
 
-      <Grid
-        container
-        spacing={3}
-      >
+              <Tooltip title="Refresh profile">
+
+                <IconButton
+                  onClick={fetchProfile}
+                  disabled={
+                    uploadingImage ||
+                    saving
+                  }
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    color: "#ffffff",
+                    backgroundColor:
+                      "rgba(255,255,255,0.14)",
+                    border:
+                      "1px solid rgba(255,255,255,0.25)",
+                    "&:hover": {
+                      backgroundColor:
+                        "rgba(255,255,255,0.24)",
+                    },
+                  }}
+                >
+
+                  <Refresh />
+
+                </IconButton>
+
+              </Tooltip>
+
+              <Button
+                variant="contained"
+                startIcon={<ArrowBack />}
+                onClick={() =>
+                  navigate("/owner/dashboard")
+                }
+                sx={{
+                  px: 2.5,
+                  height: 48,
+                  borderRadius: 2.5,
+                  color: "#1565c0",
+                  backgroundColor:
+                    "#ffffff",
+                  fontWeight: 700,
+                  boxShadow:
+                    "0 8px 20px rgba(0,0,0,0.12)",
+                  "&:hover": {
+                    backgroundColor:
+                      "#f5f5f5",
+                  },
+                }}
+              >
+                Dashboard
+              </Button>
+
+            </Stack>
+
+          </Box>
+
+        </Card>
 
         {/* =================================================
-            LEFT PROFILE CARD
+            ALERTS
+        ================================================= */}
+
+        {error && (
+
+          <Alert
+            severity="error"
+            sx={{
+              mb: 3,
+              borderRadius: 2.5,
+              boxShadow:
+                "0 5px 18px rgba(211,47,47,0.08)",
+            }}
+            onClose={() => setError("")}
+          >
+            {error}
+          </Alert>
+
+        )}
+
+        {success && (
+
+          <Alert
+            severity="success"
+            sx={{
+              mb: 3,
+              borderRadius: 2.5,
+              boxShadow:
+                "0 5px 18px rgba(46,125,50,0.08)",
+            }}
+            onClose={() => setSuccess("")}
+          >
+            {success}
+          </Alert>
+
+        )}
+
+        {/* =================================================
+            MAIN CONTENT
         ================================================= */}
 
         <Grid
-          item
-          xs={12}
-          md={5}
+          container
+          spacing={3}
+          alignItems="stretch"
         >
 
-          <Card
-            sx={{
-              borderRadius: 3,
-              height: "100%",
-              boxShadow:
-                "0 4px 18px rgba(0,0,0,0.06)",
-            }}
+          {/* =================================================
+              LEFT PROFILE CARD
+          ================================================= */}
+
+          <Grid
+            item
+            xs={12}
+            md={5}
           >
 
-            <CardContent
+            <Card
               sx={{
-                p: 4,
+                borderRadius: 4,
+                height: "100%",
+                overflow: "hidden",
+                border:
+                  "1px solid rgba(25,118,210,0.08)",
+                boxShadow:
+                  "0 10px 35px rgba(30,60,90,0.07)",
               }}
             >
 
-              {/* =================================================
-                  PROFILE IMAGE
-              ================================================= */}
+              {/* Profile card top banner */}
 
               <Box
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
+                  height: 115,
+                  background:
+                    "linear-gradient(135deg, #1565c0, #42a5f5)",
+                  position: "relative",
                 }}
               >
 
                 <Box
                   sx={{
-                    position: "relative",
-                    mb: 2,
+                    position: "absolute",
+                    width: 170,
+                    height: 170,
+                    borderRadius: "50%",
+                    right: -50,
+                    top: -90,
+                    background:
+                      "rgba(255,255,255,0.09)",
                   }}
-                >
-
-                  {/* ============================================
-                      AVATAR
-                  ============================================ */}
-
-                  <Avatar
-                    src={displayedImage}
-                    alt={
-                      `${profile?.firstName || ""} ${
-                        profile?.lastName || ""
-                      }`
-                    }
-                    imgProps={{
-                      onError:
-                        handleImageError,
-                    }}
-                    onClick={
-                      displayedImage
-                        ? handleOpenPreview
-                        : undefined
-                    }
-                    sx={{
-                      width: 150,
-                      height: 150,
-                      fontSize: 48,
-                      fontWeight: 700,
-                      cursor:
-                        displayedImage
-                          ? "pointer"
-                          : "default",
-                      background:
-                        "linear-gradient(135deg, #1976d2, #42a5f5)",
-                    }}
-                  >
-
-                    {!displayedImage &&
-                      getInitials()}
-
-                  </Avatar>
-
-                  {/* ============================================
-                      UPLOAD BUTTON
-                  ============================================ */}
-
-                  <Tooltip
-                    title={
-                      uploadingImage
-                        ? "Uploading..."
-                        : "Change profile image"
-                    }
-                  >
-
-                    <IconButton
-                      onClick={
-                        handleChooseImage
-                      }
-                      disabled={
-                        uploadingImage
-                      }
-                      sx={{
-                        position: "absolute",
-                        bottom: 5,
-                        right: 5,
-                        width: 44,
-                        height: 44,
-                        backgroundColor:
-                          "#1976d2",
-                        color: "#ffffff",
-                        border:
-                          "3px solid white",
-                        "&:hover": {
-                          backgroundColor:
-                            "#1565c0",
-                        },
-                      }}
-                    >
-
-                      {uploadingImage ? (
-
-                        <CircularProgress
-                          size={22}
-                          color="inherit"
-                        />
-
-                      ) : (
-
-                        <PhotoCamera />
-
-                      )}
-
-                    </IconButton>
-
-                  </Tooltip>
-
-                </Box>
-
-                {/* =================================================
-                    HIDDEN FILE INPUT
-                ================================================= */}
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/webp"
-                  style={{
-                    display: "none",
-                  }}
-                  onChange={
-                    handleImageChange
-                  }
                 />
 
-                {/* =================================================
-                    CHANGE IMAGE BUTTON
-                ================================================= */}
-
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={
-                    uploadingImage ? (
-                      <CircularProgress
-                        size={16}
-                      />
-                    ) : (
-                      <CloudUpload />
-                    )
-                  }
-                  onClick={
-                    handleChooseImage
-                  }
-                  disabled={
-                    uploadingImage
-                  }
+                <Box
                   sx={{
-                    mb: 2,
+                    position: "absolute",
+                    width: 110,
+                    height: 110,
+                    borderRadius: "50%",
+                    left: -35,
+                    bottom: -70,
+                    background:
+                      "rgba(255,255,255,0.08)",
                   }}
-                >
-
-                  {uploadingImage
-                    ? "Uploading..."
-                    : "Change Profile Image"}
-
-                </Button>
-
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  textAlign="center"
-                >
-                  JPG, JPEG, PNG or WEBP
-                  <br />
-                  Maximum size: 5 MB
-                </Typography>
-
-                {/* =================================================
-                    NAME
-                ================================================= */}
-
-                <Typography
-                  variant="h5"
-                  fontWeight={700}
-                  textAlign="center"
-                  sx={{
-                    mt: 3,
-                  }}
-                >
-
-                  {profile?.firstName || ""}
-                  {" "}
-                  {profile?.lastName || ""}
-
-                </Typography>
-
-                {/* =================================================
-                    ROLE
-                ================================================= */}
-
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  sx={{
-                    mt: 0.5,
-                    textTransform: "uppercase",
-                  }}
-                >
-
-                  {profile?.roleName ||
-                    profile?.role?.name ||
-                    "OWNER"}
-
-                </Typography>
-
-                {/* =================================================
-                    STATUS
-                ================================================= */}
-
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  sx={{
-                    mt: 2,
-                  }}
-                >
-
-                  <Chip
-                    label={
-                      profile?.status ||
-                      "ACTIVE"
-                    }
-                    color="success"
-                    size="small"
-                  />
-
-                  {profile?.verified !== false && (
-
-                    <Chip
-                      icon={<Verified />}
-                      label="Verified"
-                      color="primary"
-                      size="small"
-                    />
-
-                  )}
-
-                </Stack>
+                />
 
               </Box>
 
-              <Divider
+              <CardContent
                 sx={{
-                  my: 3,
+                  px: {
+                    xs: 3,
+                    md: 4,
+                  },
+                  pb: 4,
+                  pt: 0,
                 }}
-              />
-
-              {/* =================================================
-                  ACCOUNT DETAILS
-              ================================================= */}
-
-              <Stack
-                spacing={2.5}
               >
 
-                {/* ROLE */}
+                {/* =================================================
+                    PROFILE IMAGE
+                ================================================= */}
 
-                <Stack
-                  direction="row"
-                  spacing={2}
-                  alignItems="center"
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    mt: -7,
+                    position: "relative",
+                  }}
                 >
 
-                  <Badge
-                    color="action"
-                  />
+                  <Box
+                    sx={{
+                      position: "relative",
+                    }}
+                  >
 
-                  <Box>
-
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
+                    <Avatar
+                      src={displayedImage}
+                      alt={fullName}
+                      imgProps={{
+                        onError:
+                          handleImageError,
+                      }}
+                      onClick={
+                        displayedImage
+                          ? handleOpenPreview
+                          : undefined
+                      }
+                      sx={{
+                        width: 150,
+                        height: 150,
+                        fontSize: 48,
+                        fontWeight: 800,
+                        cursor:
+                          displayedImage
+                            ? "pointer"
+                            : "default",
+                        background:
+                          "linear-gradient(135deg, #e3f2fd, #ffffff)",
+                        color: "#1565c0",
+                        border:
+                          "7px solid #ffffff",
+                        boxShadow:
+                          "0 12px 35px rgba(25,118,210,0.22)",
+                      }}
                     >
-                      Account Role
-                    </Typography>
 
-                    <Typography
-                      fontWeight={600}
+                      {!displayedImage &&
+                        getInitials()}
+
+                    </Avatar>
+
+                    {/* Upload button */}
+
+                    <Tooltip
+                      title={
+                        uploadingImage
+                          ? "Uploading..."
+                          : "Change profile image"
+                      }
                     >
-                      {profile?.roleName ||
-                        profile?.role?.name ||
-                        "OWNER"}
-                    </Typography>
+
+                      <IconButton
+                        onClick={
+                          handleChooseImage
+                        }
+                        disabled={
+                          uploadingImage
+                        }
+                        sx={{
+                          position:
+                            "absolute",
+                          bottom: 4,
+                          right: 3,
+                          width: 46,
+                          height: 46,
+                          backgroundColor:
+                            "#1976d2",
+                          color: "#ffffff",
+                          border:
+                            "3px solid white",
+                          boxShadow:
+                            "0 5px 15px rgba(25,118,210,0.35)",
+                          "&:hover": {
+                            backgroundColor:
+                              "#0d47a1",
+                          },
+                        }}
+                      >
+
+                        {uploadingImage ? (
+
+                          <CircularProgress
+                            size={22}
+                            color="inherit"
+                          />
+
+                        ) : (
+
+                          <PhotoCamera />
+
+                        )}
+
+                      </IconButton>
+
+                    </Tooltip>
 
                   </Box>
 
-                </Stack>
+                  {/* Hidden input */}
 
-                {/* STATUS */}
-
-                <Stack
-                  direction="row"
-                  spacing={2}
-                  alignItems="center"
-                >
-
-                  <Lock
-                    color="action"
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                    style={{
+                      display: "none",
+                    }}
+                    onChange={
+                      handleImageChange
+                    }
                   />
 
-                  <Box>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={
+                      uploadingImage ? (
+                        <CircularProgress
+                          size={16}
+                        />
+                      ) : (
+                        <CloudUpload />
+                      )
+                    }
+                    onClick={
+                      handleChooseImage
+                    }
+                    disabled={
+                      uploadingImage
+                    }
+                    sx={{
+                      mt: 2,
+                      mb: 1,
+                      borderRadius: 2,
+                      px: 2,
+                      fontWeight: 700,
+                      borderWidth: 1.5,
+                      "&:hover": {
+                        borderWidth: 1.5,
+                      },
+                    }}
+                  >
 
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                    >
-                      Account Status
-                    </Typography>
+                    {uploadingImage
+                      ? "Uploading..."
+                      : "Change Profile Image"}
 
-                    <Typography
-                      fontWeight={600}
-                    >
-                      {profile?.status ||
-                        "ACTIVE"}
-                    </Typography>
+                  </Button>
 
-                  </Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    textAlign="center"
+                  >
+                    JPG, JPEG, PNG or WEBP
+                    <br />
+                    Maximum size: 5 MB
+                  </Typography>
 
-                </Stack>
+                  <Typography
+                    variant="h5"
+                    fontWeight={800}
+                    textAlign="center"
+                    sx={{
+                      mt: 2,
+                      color: "#172b4d",
+                    }}
+                  >
+                    {fullName}
+                  </Typography>
 
-                {/* VERIFICATION */}
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      mt: 0.5,
+                      textTransform:
+                        "uppercase",
+                      letterSpacing: 1,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {profile?.roleName ||
+                      profile?.role?.name ||
+                      "OWNER"}
+                  </Typography>
+
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      mt: 2,
+                    }}
+                  >
+
+                    <Chip
+                      label={
+                        profile?.status ||
+                        "ACTIVE"
+                      }
+                      color="success"
+                      size="small"
+                      icon={
+                        <CheckCircle />
+                      }
+                      sx={{
+                        fontWeight: 700,
+                      }}
+                    />
+
+                    {profile?.verified !== false && (
+
+                      <Chip
+                        icon={
+                          <Verified />
+                        }
+                        label="Verified"
+                        color="primary"
+                        size="small"
+                        sx={{
+                          fontWeight: 700,
+                        }}
+                      />
+
+                    )}
+
+                  </Stack>
+
+                </Box>
+
+                <Divider
+                  sx={{
+                    my: 3,
+                  }}
+                />
+
+                {/* =================================================
+                    ACCOUNT DETAILS
+                ================================================= */}
+
+                <Typography
+                  variant="overline"
+                  color="text.secondary"
+                  fontWeight={800}
+                  letterSpacing={1.2}
+                >
+                  ACCOUNT INFORMATION
+                </Typography>
 
                 <Stack
-                  direction="row"
-                  spacing={2}
-                  alignItems="center"
+                  spacing={1.5}
+                  sx={{
+                    mt: 1.5,
+                  }}
                 >
 
-                  <Verified
-                    color="action"
-                  />
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 1.8,
+                      borderRadius: 2.5,
+                      backgroundColor:
+                        "#f7f9fc",
+                      border:
+                        "1px solid #edf0f5",
+                    }}
+                  >
 
-                  <Box>
-
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
+                    <Stack
+                      direction="row"
+                      spacing={2}
+                      alignItems="center"
                     >
-                      Verification
-                    </Typography>
 
-                    <Typography
-                      fontWeight={600}
+                      <Avatar
+                        sx={{
+                          width: 42,
+                          height: 42,
+                          backgroundColor:
+                            "#e3f2fd",
+                          color: "#1976d2",
+                        }}
+                      >
+                        <Badge />
+                      </Avatar>
+
+                      <Box>
+
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                        >
+                          Account Role
+                        </Typography>
+
+                        <Typography
+                          fontWeight={700}
+                        >
+                          {profile?.roleName ||
+                            profile?.role?.name ||
+                            "OWNER"}
+                        </Typography>
+
+                      </Box>
+
+                    </Stack>
+
+                  </Paper>
+
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 1.8,
+                      borderRadius: 2.5,
+                      backgroundColor:
+                        "#f7f9fc",
+                      border:
+                        "1px solid #edf0f5",
+                    }}
+                  >
+
+                    <Stack
+                      direction="row"
+                      spacing={2}
+                      alignItems="center"
                     >
-                      {profile?.verified
-                        ? "Verified"
-                        : "Not Verified"}
-                    </Typography>
 
-                  </Box>
+                      <Avatar
+                        sx={{
+                          width: 42,
+                          height: 42,
+                          backgroundColor:
+                            "#e8f5e9",
+                          color: "#2e7d32",
+                        }}
+                      >
+                        <Lock />
+                      </Avatar>
+
+                      <Box>
+
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                        >
+                          Account Status
+                        </Typography>
+
+                        <Typography
+                          fontWeight={700}
+                        >
+                          {profile?.status ||
+                            "ACTIVE"}
+                        </Typography>
+
+                      </Box>
+
+                    </Stack>
+
+                  </Paper>
+
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 1.8,
+                      borderRadius: 2.5,
+                      backgroundColor:
+                        "#f7f9fc",
+                      border:
+                        "1px solid #edf0f5",
+                    }}
+                  >
+
+                    <Stack
+                      direction="row"
+                      spacing={2}
+                      alignItems="center"
+                    >
+
+                      <Avatar
+                        sx={{
+                          width: 42,
+                          height: 42,
+                          backgroundColor:
+                            "#fff8e1",
+                          color: "#f57f17",
+                        }}
+                      >
+                        <Security />
+                      </Avatar>
+
+                      <Box>
+
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                        >
+                          Verification
+                        </Typography>
+
+                        <Typography
+                          fontWeight={700}
+                        >
+                          {profile?.verified
+                            ? "Verified"
+                            : "Not Verified"}
+                        </Typography>
+
+                      </Box>
+
+                    </Stack>
+
+                  </Paper>
 
                 </Stack>
 
-              </Stack>
+              </CardContent>
 
-            </CardContent>
+            </Card>
 
-          </Card>
+          </Grid>
+
+          {/* =================================================
+              RIGHT PERSONAL INFORMATION
+          ================================================= */}
+
+          <Grid
+            item
+            xs={12}
+            md={7}
+          >
+
+            <Card
+              sx={{
+                borderRadius: 4,
+                height: "100%",
+                border:
+                  "1px solid rgba(25,118,210,0.08)",
+                boxShadow:
+                  "0 10px 35px rgba(30,60,90,0.07)",
+              }}
+            >
+
+              <CardContent
+                sx={{
+                  p: {
+                    xs: 3,
+                    md: 4,
+                  },
+                }}
+              >
+
+                {/* Header */}
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent:
+                      "space-between",
+                    alignItems:
+                      "flex-start",
+                    gap: 2,
+                    mb: 3,
+                    flexWrap: "wrap",
+                  }}
+                >
+
+                  <Stack
+                    direction="row"
+                    spacing={2}
+                    alignItems="center"
+                  >
+
+                    <Avatar
+                      sx={{
+                        width: 54,
+                        height: 54,
+                        background:
+                          "linear-gradient(135deg, #e3f2fd, #bbdefb)",
+                        color: "#1565c0",
+                      }}
+                    >
+                      <AccountCircle
+                        sx={{
+                          fontSize: 30,
+                        }}
+                      />
+                    </Avatar>
+
+                    <Box>
+
+                      <Typography
+                        variant="h5"
+                        fontWeight={800}
+                        color="#172b4d"
+                      >
+                        Personal Information
+                      </Typography>
+
+                      <Typography
+                        color="text.secondary"
+                        sx={{
+                          mt: 0.4,
+                        }}
+                      >
+                        View and update your account details
+                      </Typography>
+
+                    </Box>
+
+                  </Stack>
+
+                  {!editing && (
+
+                    <Button
+                      variant="contained"
+                      startIcon={<Edit />}
+                      onClick={handleEdit}
+                      sx={{
+                        borderRadius: 2.5,
+                        px: 2.5,
+                        py: 1.1,
+                        fontWeight: 700,
+                        boxShadow:
+                          "0 7px 18px rgba(25,118,210,0.25)",
+                      }}
+                    >
+                      Edit Profile
+                    </Button>
+
+                  )}
+
+                </Box>
+
+                <Divider
+                  sx={{
+                    mb: 3.5,
+                  }}
+                />
+
+                {/* =================================================
+                    FORM
+                ================================================= */}
+
+                <Grid
+                  container
+                  spacing={2.5}
+                >
+
+                  {/* FIRST NAME */}
+
+                  <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                  >
+
+                    <TextField
+                      fullWidth
+                      label="First Name"
+                      name="firstName"
+                      value={
+                        formData.firstName
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      disabled={!editing}
+                      InputProps={{
+                        startAdornment: (
+                          <Person
+                            sx={{
+                              mr: 1,
+                              color:
+                                "text.secondary",
+                            }}
+                          />
+                        ),
+                      }}
+                      sx={{
+                        "& .MuiOutlinedInput-root":
+                          {
+                            borderRadius: 2.5,
+                            backgroundColor:
+                              editing
+                                ? "#ffffff"
+                                : "#f8fafc",
+                          },
+                      }}
+                    />
+
+                  </Grid>
+
+                  {/* LAST NAME */}
+
+                  <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                  >
+
+                    <TextField
+                      fullWidth
+                      label="Last Name"
+                      name="lastName"
+                      value={
+                        formData.lastName
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      disabled={!editing}
+                      sx={{
+                        "& .MuiOutlinedInput-root":
+                          {
+                            borderRadius: 2.5,
+                            backgroundColor:
+                              editing
+                                ? "#ffffff"
+                                : "#f8fafc",
+                          },
+                      }}
+                    />
+
+                  </Grid>
+
+                  {/* EMAIL */}
+
+                  <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                  >
+
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      name="email"
+                      type="email"
+                      value={
+                        formData.email
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      disabled={!editing}
+                      InputProps={{
+                        startAdornment: (
+                          <Email
+                            sx={{
+                              mr: 1,
+                              color:
+                                "text.secondary",
+                            }}
+                          />
+                        ),
+                      }}
+                      sx={{
+                        "& .MuiOutlinedInput-root":
+                          {
+                            borderRadius: 2.5,
+                            backgroundColor:
+                              editing
+                                ? "#ffffff"
+                                : "#f8fafc",
+                          },
+                      }}
+                    />
+
+                  </Grid>
+
+                  {/* MOBILE */}
+
+                  <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                  >
+
+                    <TextField
+                      fullWidth
+                      label="Mobile"
+                      name="mobile"
+                      value={
+                        formData.mobile
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      disabled={!editing}
+                      InputProps={{
+                        startAdornment: (
+                          <Phone
+                            sx={{
+                              mr: 1,
+                              color:
+                                "text.secondary",
+                            }}
+                          />
+                        ),
+                      }}
+                      sx={{
+                        "& .MuiOutlinedInput-root":
+                          {
+                            borderRadius: 2.5,
+                            backgroundColor:
+                              editing
+                                ? "#ffffff"
+                                : "#f8fafc",
+                          },
+                      }}
+                    />
+
+                  </Grid>
+
+                  {/* ADDRESS */}
+
+                  <Grid
+                    item
+                    xs={12}
+                  >
+
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={5}
+                      label="Address"
+                      name="address"
+                      value={
+                        formData.address
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      disabled={!editing}
+                      InputProps={{
+                        startAdornment: (
+                          <Home
+                            sx={{
+                              mr: 1,
+                              mt: 1,
+                              color:
+                                "text.secondary",
+                            }}
+                          />
+                        ),
+                      }}
+                      sx={{
+                        "& .MuiOutlinedInput-root":
+                          {
+                            borderRadius: 2.5,
+                            backgroundColor:
+                              editing
+                                ? "#ffffff"
+                                : "#f8fafc",
+                          },
+                      }}
+                    />
+
+                  </Grid>
+
+                </Grid>
+
+                {/* =================================================
+                    SAVE / CANCEL
+                ================================================= */}
+
+                {editing && (
+
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      mt: 3,
+                      p: 2,
+                      borderRadius: 2.5,
+                      backgroundColor:
+                        "#f5f9ff",
+                      border:
+                        "1px solid #dbeafe",
+                    }}
+                  >
+
+                    <Stack
+                      direction={{
+                        xs: "column-reverse",
+                        sm: "row",
+                      }}
+                      spacing={1.5}
+                      justifyContent="flex-end"
+                    >
+
+                      <Button
+                        variant="outlined"
+                        startIcon={
+                          <Cancel />
+                        }
+                        onClick={
+                          handleCancel
+                        }
+                        disabled={saving}
+                        sx={{
+                          borderRadius: 2,
+                          px: 2.5,
+                          fontWeight: 700,
+                        }}
+                      >
+                        Cancel
+                      </Button>
+
+                      <Button
+                        variant="contained"
+                        startIcon={
+                          saving ? (
+                            <CircularProgress
+                              size={18}
+                              color="inherit"
+                            />
+                          ) : (
+                            <Save />
+                          )
+                        }
+                        onClick={
+                          handleSave
+                        }
+                        disabled={saving}
+                        sx={{
+                          borderRadius: 2,
+                          px: 2.8,
+                          fontWeight: 700,
+                          boxShadow:
+                            "0 6px 16px rgba(25,118,210,0.22)",
+                        }}
+                      >
+                        {saving
+                          ? "Saving..."
+                          : "Save Changes"}
+                      </Button>
+
+                    </Stack>
+
+                  </Paper>
+
+                )}
+
+              </CardContent>
+
+            </Card>
+
+          </Grid>
 
         </Grid>
 
         {/* =================================================
-            RIGHT PERSONAL INFORMATION
+            PROFILE IMAGE INFORMATION
         ================================================= */}
 
-        <Grid
-          item
-          xs={12}
-          md={7}
+        <Card
+          sx={{
+            mt: 3,
+            borderRadius: 4,
+            overflow: "hidden",
+            border:
+              "1px solid rgba(25,118,210,0.08)",
+            boxShadow:
+              "0 10px 35px rgba(30,60,90,0.07)",
+          }}
         >
 
-          <Card
+          <CardContent
             sx={{
-              borderRadius: 3,
-              boxShadow:
-                "0 4px 18px rgba(0,0,0,0.06)",
+              p: {
+                xs: 2.5,
+                md: 3,
+              },
             }}
           >
 
-            <CardContent
-              sx={{
-                p: 4,
+            <Stack
+              direction={{
+                xs: "column",
+                sm: "row",
               }}
+              spacing={2}
+              alignItems={{
+                xs: "flex-start",
+                sm: "center",
+              }}
+              justifyContent="space-between"
             >
 
-              {/* HEADER */}
-
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent:
-                    "space-between",
-                  alignItems:
-                    "flex-start",
-                  gap: 2,
-                  mb: 3,
-                }}
+              <Stack
+                direction="row"
+                spacing={2}
+                alignItems="center"
               >
+
+                <Avatar
+                  sx={{
+                    width: 52,
+                    height: 52,
+                    background:
+                      "linear-gradient(135deg, #e3f2fd, #bbdefb)",
+                    color: "#1976d2",
+                  }}
+                >
+                  <PhotoCamera />
+                </Avatar>
 
                 <Box>
 
                   <Typography
-                    variant="h5"
-                    fontWeight={600}
+                    fontWeight={800}
+                    fontSize="1.05rem"
                   >
-                    Personal Information
+                    Profile Image
                   </Typography>
 
                   <Typography
+                    variant="body2"
                     color="text.secondary"
                     sx={{
-                      mt: 0.5,
+                      mt: 0.3,
                     }}
                   >
-                    View and update your account details
+                    Keep your owner profile professional
+                    with a clear profile image.
                   </Typography>
+
+                  {profile?.profileImage && (
+
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{
+                        mt: 0.6,
+                        display: "block",
+                        wordBreak:
+                          "break-all",
+                      }}
+                    >
+                      Current image:{" "}
+                      {profile.profileImage}
+                    </Typography>
+
+                  )}
 
                 </Box>
 
-                {!editing && (
+              </Stack>
 
-                  <Button
-                    variant="contained"
-                    startIcon={<Edit />}
-                    onClick={handleEdit}
-                  >
-                    Edit Profile
-                  </Button>
-
-                )}
-
-              </Box>
-
-              <Divider
+              <Button
+                variant="outlined"
+                startIcon={<CloudUpload />}
+                onClick={
+                  handleChooseImage
+                }
+                disabled={
+                  uploadingImage
+                }
                 sx={{
-                  mb: 3,
+                  borderRadius: 2,
+                  fontWeight: 700,
+                  whiteSpace:
+                    "nowrap",
                 }}
-              />
-
-              {/* FORM */}
-
-              <Grid
-                container
-                spacing={2.5}
               >
+                Upload New Image
+              </Button>
 
-                {/* FIRST NAME */}
+            </Stack>
 
-                <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                >
+          </CardContent>
 
-                  <TextField
-                    fullWidth
-                    label="First Name"
-                    name="firstName"
-                    value={
-                      formData.firstName
-                    }
-                    onChange={
-                      handleChange
-                    }
-                    disabled={!editing}
-                    InputProps={{
-                      startAdornment: (
-                        <Person
-                          sx={{
-                            mr: 1,
-                            color:
-                              "text.secondary",
-                          }}
-                        />
-                      ),
-                    }}
-                  />
+        </Card>
 
-                </Grid>
-
-                {/* LAST NAME */}
-
-                <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                >
-
-                  <TextField
-                    fullWidth
-                    label="Last Name"
-                    name="lastName"
-                    value={
-                      formData.lastName
-                    }
-                    onChange={
-                      handleChange
-                    }
-                    disabled={!editing}
-                  />
-
-                </Grid>
-
-                {/* EMAIL */}
-
-                <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                >
-
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    name="email"
-                    type="email"
-                    value={
-                      formData.email
-                    }
-                    onChange={
-                      handleChange
-                    }
-                    disabled={!editing}
-                    InputProps={{
-                      startAdornment: (
-                        <Email
-                          sx={{
-                            mr: 1,
-                            color:
-                              "text.secondary",
-                          }}
-                        />
-                      ),
-                    }}
-                  />
-
-                </Grid>
-
-                {/* MOBILE */}
-
-                <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                >
-
-                  <TextField
-                    fullWidth
-                    label="Mobile"
-                    name="mobile"
-                    value={
-                      formData.mobile
-                    }
-                    onChange={
-                      handleChange
-                    }
-                    disabled={!editing}
-                    InputProps={{
-                      startAdornment: (
-                        <Phone
-                          sx={{
-                            mr: 1,
-                            color:
-                              "text.secondary",
-                          }}
-                        />
-                      ),
-                    }}
-                  />
-
-                </Grid>
-
-                {/* ADDRESS */}
-
-                <Grid
-                  item
-                  xs={12}
-                >
-
-                  <TextField
-                    fullWidth
-                    multiline
-                    minRows={4}
-                    label="Address"
-                    name="address"
-                    value={
-                      formData.address
-                    }
-                    onChange={
-                      handleChange
-                    }
-                    disabled={!editing}
-                    InputProps={{
-                      startAdornment: (
-                        <Home
-                          sx={{
-                            mr: 1,
-                            mt: 1,
-                            color:
-                              "text.secondary",
-                          }}
-                        />
-                      ),
-                    }}
-                  />
-
-                </Grid>
-
-              </Grid>
-
-              {/* SAVE / CANCEL */}
-
-              {editing && (
-
-                <Stack
-                  direction="row"
-                  spacing={2}
-                  justifyContent="flex-end"
-                  sx={{
-                    mt: 3,
-                  }}
-                >
-
-                  <Button
-                    variant="outlined"
-                    startIcon={<Cancel />}
-                    onClick={
-                      handleCancel
-                    }
-                    disabled={saving}
-                  >
-                    Cancel
-                  </Button>
-
-                  <Button
-                    variant="contained"
-                    startIcon={
-                      saving ? (
-                        <CircularProgress
-                          size={18}
-                          color="inherit"
-                        />
-                      ) : (
-                        <Save />
-                      )
-                    }
-                    onClick={
-                      handleSave
-                    }
-                    disabled={saving}
-                  >
-                    {saving
-                      ? "Saving..."
-                      : "Save Changes"}
-                  </Button>
-
-                </Stack>
-
-              )}
-
-            </CardContent>
-
-          </Card>
-
-        </Grid>
-
-      </Grid>
-
-      {/* =================================================
-          PROFILE IMAGE INFORMATION
-      ================================================= */}
-
-      <Card
-        sx={{
-          mt: 3,
-          borderRadius: 3,
-          boxShadow:
-            "0 4px 18px rgba(0,0,0,0.06)",
-        }}
-      >
-
-        <CardContent
-          sx={{
-            p: 3,
-          }}
-        >
-
-          <Stack
-            direction="row"
-            spacing={2}
-            alignItems="center"
-          >
-
-            <Avatar
-              sx={{
-                backgroundColor:
-                  "#e3f2fd",
-                color: "#1976d2",
-              }}
-            >
-              <PhotoCamera />
-            </Avatar>
-
-            <Box>
-
-              <Typography
-                fontWeight={700}
-              >
-                Profile Image
-              </Typography>
-
-              <Typography
-                variant="body2"
-                color="text.secondary"
-              >
-                Upload a new owner image using
-                the camera button above.
-              </Typography>
-
-              {profile?.profileImage && (
-
-                <Typography
-                  variant="body2"
-                  sx={{
-                    mt: 0.5,
-                    wordBreak: "break-all",
-                  }}
-                >
-                  Image:{" "}
-                  {profile.profileImage}
-                </Typography>
-
-              )}
-
-            </Box>
-
-          </Stack>
-
-        </CardContent>
-
-      </Card>
+      </Box>
 
       {/* =================================================
           IMAGE PREVIEW DIALOG
@@ -1555,9 +2055,22 @@ function OwnerProfile() {
         }
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            overflow: "hidden",
+          },
+        }}
       >
 
-        <DialogTitle>
+        <DialogTitle
+          sx={{
+            background:
+              "linear-gradient(135deg, #0d47a1, #1976d2)",
+            color: "#ffffff",
+            p: 2.5,
+          }}
+        >
 
           <Box
             sx={{
@@ -1568,17 +2081,44 @@ function OwnerProfile() {
             }}
           >
 
-            <Typography
-              variant="h6"
-              fontWeight={700}
+            <Stack
+              direction="row"
+              spacing={1.5}
+              alignItems="center"
             >
-              Profile Image
-            </Typography>
+
+              <Avatar
+                sx={{
+                  width: 38,
+                  height: 38,
+                  backgroundColor:
+                    "rgba(255,255,255,0.15)",
+                  color: "#ffffff",
+                }}
+              >
+                <PhotoCamera />
+              </Avatar>
+
+              <Typography
+                variant="h6"
+                fontWeight={800}
+              >
+                Profile Image
+              </Typography>
+
+            </Stack>
 
             <IconButton
               onClick={
                 handleClosePreview
               }
+              sx={{
+                color: "#ffffff",
+                "&:hover": {
+                  backgroundColor:
+                    "rgba(255,255,255,0.12)",
+                },
+              }}
             >
               <Close />
             </IconButton>
@@ -1593,35 +2133,67 @@ function OwnerProfile() {
             justifyContent:
               "center",
             alignItems: "center",
-            p: 4,
+            p: {
+              xs: 2,
+              md: 4,
+            },
+            backgroundColor:
+              "#f5f7fb",
           }}
         >
 
           <Box
-            component="img"
-            src={
-              imagePreview ||
-              getProfileImageUrl(
-                profile?.profileImage
-              )
-            }
-            alt="Owner Profile"
             sx={{
-              maxWidth: "100%",
-              maxHeight: "60vh",
+              p: 1,
               borderRadius: 3,
-              objectFit: "contain",
+              backgroundColor:
+                "#ffffff",
+              boxShadow:
+                "0 12px 35px rgba(0,0,0,0.12)",
+              maxWidth: "100%",
             }}
-          />
+          >
+
+            <Box
+              component="img"
+              src={
+                imagePreview ||
+                getProfileImageUrl(
+                  profile?.profileImage
+                )
+              }
+              alt="Owner Profile"
+              sx={{
+                display: "block",
+                maxWidth: "100%",
+                maxHeight: "60vh",
+                borderRadius: 2.5,
+                objectFit: "contain",
+              }}
+            />
+
+          </Box>
 
         </DialogContent>
 
-        <DialogActions>
+        <DialogActions
+          sx={{
+            p: 2,
+            backgroundColor:
+              "#f5f7fb",
+          }}
+        >
 
           <Button
             onClick={
               handleClosePreview
             }
+            variant="contained"
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              fontWeight: 700,
+            }}
           >
             Close
           </Button>

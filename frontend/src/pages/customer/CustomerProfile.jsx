@@ -55,7 +55,7 @@ import {
 // =====================================================
 
 const BACKEND_URL =
-  "http://localhost:9090";
+  "https://realestate-pro-backend.onrender.com";
 
 
 // =====================================================

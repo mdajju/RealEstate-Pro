@@ -46,8 +46,16 @@ import {
 // BACKEND
 // =====================================================
 
-const BACKEND_URL = "http://localhost:9090";
+// =====================================================
+// BACKEND CONFIGURATION
+// Supports local development and public deployment
+// =====================================================
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://realestate-pro-backend.onrender.com/api";
+
+const BACKEND_URL = API_BASE_URL.replace(/\/api\/?$/, "");
 // =====================================================
 // FALLBACK / DEMO PROPERTY IMAGES
 // =====================================================
@@ -67,15 +75,15 @@ const FALLBACK_IMAGES = [
 
   "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=1200&q=85",
 
-  "https://images.unsplash.com/photo-1600566753051-0c2c5f8f7a6e?auto=format&fit=crop&w=1200&q=85",
-
   "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?auto=format&fit=crop&w=1200&q=85",
-
-  "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=85",
 
   "https://images.unsplash.com/photo-1600607688969-a5bfcd646154?auto=format&fit=crop&w=1200&q=85",
 
   "https://images.unsplash.com/photo-1600585154363-67eb9e2e2099?auto=format&fit=crop&w=1200&q=85",
+
+  "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=85",
+
+  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=85",
 ];
 
 // =====================================================
@@ -100,7 +108,7 @@ const buildImageUrl = (imageValue) => {
     return null;
   }
 
-  // Already a complete URL
+  // Already complete URL
   if (
     value.startsWith("http://") ||
     value.startsWith("https://")
@@ -108,34 +116,37 @@ const buildImageUrl = (imageValue) => {
     return value;
   }
 
-  // Backend upload path
+  // /uploads/image.jpg
   if (value.startsWith("/uploads/")) {
     return `${BACKEND_URL}${value}`;
   }
 
+  // uploads/image.jpg
   if (value.startsWith("uploads/")) {
     return `${BACKEND_URL}/${value}`;
   }
 
-  // Backend images path
+  // /images/image.jpg
   if (value.startsWith("/images/")) {
     return `${BACKEND_URL}${value}`;
   }
 
+  // images/image.jpg
   if (value.startsWith("images/")) {
     return `${BACKEND_URL}/${value}`;
   }
 
-  // Backend image path
+  // /image/image.jpg
   if (value.startsWith("/image/")) {
     return `${BACKEND_URL}${value}`;
   }
 
+  // image/image.jpg
   if (value.startsWith("image/")) {
     return `${BACKEND_URL}/${value}`;
   }
 
-  // Any backend absolute path
+  // Any other backend absolute path
   if (value.startsWith("/")) {
     return `${BACKEND_URL}${value}`;
   }
@@ -153,7 +164,10 @@ const getPropertyImage = (property, index = 0) => {
   // Demo property
   // ---------------------------------------------------
 
-  if (property?.demo === true && property?.demoImage) {
+  if (
+    property?.demo === true &&
+    property?.demoImage
+  ) {
     return property.demoImage;
   }
 
@@ -218,9 +232,7 @@ const getPropertyImage = (property, index = 0) => {
     const firstImage =
       property.images[0];
 
-    // Example:
     // images: ["abc.jpg"]
-
     if (typeof firstImage === "string") {
       const url =
         buildImageUrl(firstImage);
@@ -230,9 +242,7 @@ const getPropertyImage = (property, index = 0) => {
       }
     }
 
-    // Example:
     // images: [{ imageUrl: "/uploads/abc.jpg" }]
-
     if (
       typeof firstImage === "object" &&
       firstImage !== null
@@ -277,19 +287,21 @@ const handleImageError = (event, index = 0) => {
       index % FALLBACK_IMAGES.length
     ] || DEFAULT_IMAGE;
 
-  // Prevent infinite image-error loop
+  // First failure
   if (
-    event.currentTarget.dataset.fallbackApplied ===
-    "true"
+    event.currentTarget.dataset
+      .fallbackApplied !== "true"
   ) {
-    event.currentTarget.src = DEFAULT_IMAGE;
+    event.currentTarget.dataset.fallbackApplied =
+      "true";
+
+    event.currentTarget.src = fallback;
+
     return;
   }
 
-  event.currentTarget.dataset.fallbackApplied =
-    "true";
-
-  event.currentTarget.src = fallback;
+  // Second failure
+  event.currentTarget.src = DEFAULT_IMAGE;
 };
 
 // =====================================================
@@ -656,10 +668,23 @@ function Index() {
             propertiesResponse
           );
 
+        console.log(
+          "Homepage API properties:",
+          propertyData
+        );
+
         if (propertyData.length > 0) {
-          setProperties(
-            propertyData
-          );
+          /*
+           * IMPORTANT:
+           * Combine backend properties with demo
+           * properties so the homepage always has
+           * enough cards/images while the image
+           * upload module is still being completed.
+           */
+          setProperties([
+            ...propertyData,
+            ...DEMO_PROPERTIES,
+          ]);
         } else {
           setProperties(
             DEMO_PROPERTIES
@@ -1117,6 +1142,7 @@ function Index() {
             >
               Find a place
               <br />
+
               <Box
                 component="span"
                 sx={{
@@ -1344,7 +1370,7 @@ function Index() {
                     fontWeight: 900,
                   }}
                 >
-                  {properties.length}+
+                  {featuredProperties.length}+
                 </Typography>
 
                 <Typography
@@ -1770,6 +1796,8 @@ function Index() {
                             }
                           />
 
+                          {/* STATUS */}
+
                           <Chip
                             label={
                               property.status ||
@@ -1792,6 +1820,8 @@ function Index() {
                             }}
                           />
 
+                          {/* DEMO LABEL */}
+
                           {isDemo && (
                             <Chip
                               label="Demo"
@@ -1810,6 +1840,8 @@ function Index() {
                               }}
                             />
                           )}
+
+                          {/* FAVORITE */}
 
                           <Box
                             sx={{

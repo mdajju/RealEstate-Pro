@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import {
   NavLink,
   Outlet,
@@ -39,9 +40,10 @@ import {
   Logout as LogoutIcon,
   Close as CloseIcon,
   AdminPanelSettings as AdminIcon,
+  Person as PersonIcon,
 } from "@mui/icons-material";
 
-import { getUnreadNotificationCount } from "../api";
+import { getAllNotifications } from "../api";
 
 // =====================================================
 // CONSTANTS
@@ -54,7 +56,9 @@ const DRAWER_WIDTH = 270;
 // =====================================================
 
 function AdminLayout() {
+
   const navigate = useNavigate();
+
   const location = useLocation();
 
   const theme = useTheme();
@@ -63,6 +67,7 @@ function AdminLayout() {
     theme.breakpoints.down("md")
   );
 
+
   // ===================================================
   // STATE
   // ===================================================
@@ -70,15 +75,21 @@ function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] =
     useState(true);
 
-  const [unreadCount, setUnreadCount] =
+  const [notificationCount, setNotificationCount] =
     useState(0);
+
+  const [notificationLoading, setNotificationLoading] =
+    useState(false);
+
 
   // ===================================================
   // GET LOGGED-IN USER
   // ===================================================
 
   const getStoredUser = () => {
+
     try {
+
       const savedUser =
         localStorage.getItem("user");
 
@@ -87,7 +98,9 @@ function AdminLayout() {
       }
 
       return JSON.parse(savedUser);
+
     } catch (error) {
+
       console.error(
         "Error reading logged-in user:",
         error
@@ -97,13 +110,16 @@ function AdminLayout() {
     }
   };
 
+
   const user = getStoredUser();
+
 
   // ===================================================
   // USER NAME
   // ===================================================
 
   const getUserName = () => {
+
     if (!user) {
       return "Administrator";
     }
@@ -121,16 +137,20 @@ function AdminLayout() {
     );
   };
 
+
   // ===================================================
   // USER ROLE
   // ===================================================
 
   const getUserRole = () => {
+
     if (!user) {
       return "ADMIN";
     }
 
-    if (typeof user.role === "string") {
+    if (
+      typeof user.role === "string"
+    ) {
       return user.role;
     }
 
@@ -145,95 +165,225 @@ function AdminLayout() {
     return "ADMIN";
   };
 
+
+  // ===================================================
+  // USER INITIALS
+  // ===================================================
+
+  const getUserInitials = () => {
+
+    if (!user) {
+      return "A";
+    }
+
+    const first =
+      user.firstName?.charAt(0) || "";
+
+    const last =
+      user.lastName?.charAt(0) || "";
+
+    const initials =
+      `${first}${last}`.toUpperCase();
+
+    return initials || "A";
+  };
+
+
+  // ===================================================
+  // PROFILE IMAGE URL
+  // ===================================================
+
+  const getProfileImageUrl = () => {
+
+    if (!user?.profileImage) {
+      return "";
+    }
+
+    const image =
+      user.profileImage;
+
+    if (
+      image.startsWith("http://") ||
+      image.startsWith("https://")
+    ) {
+      return image;
+    }
+
+    if (
+      image.startsWith("/uploads/")
+    ) {
+      return `https://realestate-pro-backend.onrender.com${image}`;
+    }
+
+    if (
+      image.startsWith("uploads/")
+    ) {
+      return `https://realestate-pro-backend.onrender.com/${image}`;
+    }
+
+    return `https://realestate-pro-backend.onrender.com/uploads/${image}`;
+  };
+
+
   // ===================================================
   // LOGOUT
   // ===================================================
 
   const handleLogout = () => {
+
     localStorage.removeItem("token");
+
     localStorage.removeItem("user");
 
-    navigate("/login", {
-      replace: true,
-    });
+    navigate(
+      "/login",
+      {
+        replace: true,
+      }
+    );
   };
 
+
   // ===================================================
-  // LOAD UNREAD NOTIFICATIONS
+  // LOAD NOTIFICATION COUNT
+  // ===================================================
+
+  const fetchNotificationCount =
+    async () => {
+
+      try {
+
+        if (!user) {
+
+          setNotificationCount(0);
+
+          return;
+        }
+
+        setNotificationLoading(true);
+
+        const response =
+          await getAllNotifications();
+
+        console.log(
+          "Admin notifications response:",
+          response
+        );
+
+
+        // =================================================
+        // HANDLE DIFFERENT RESPONSE STRUCTURES
+        // =================================================
+
+        let notifications = [];
+
+
+        if (
+          Array.isArray(
+            response?.data
+          )
+        ) {
+
+          notifications =
+            response.data;
+
+        } else if (
+          Array.isArray(response)
+        ) {
+
+          notifications =
+            response;
+
+        } else if (
+          Array.isArray(
+            response?.notifications
+          )
+        ) {
+
+          notifications =
+            response.notifications;
+        }
+
+
+        console.log(
+          "Total notifications:",
+          notifications.length
+        );
+
+
+        setNotificationCount(
+          notifications.length
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Admin notification count error:",
+          error
+        );
+
+        setNotificationCount(0);
+
+      } finally {
+
+        setNotificationLoading(false);
+      }
+    };
+
+
+  // ===================================================
+  // INITIAL LOAD + ROUTE CHANGE
   // ===================================================
 
   useEffect(() => {
-    fetchUnreadCount();
+
+    fetchNotificationCount();
+
+  }, [location.pathname]);
+
+
+  // ===================================================
+  // AUTO REFRESH NOTIFICATION COUNT
+  // ===================================================
+
+  useEffect(() => {
+
+    const interval =
+      setInterval(() => {
+
+        fetchNotificationCount();
+
+      }, 10000);
+
+
+    return () => {
+
+      clearInterval(interval);
+
+    };
+
   }, []);
 
-  // ===================================================
-  // FETCH UNREAD COUNT
-  // ===================================================
-
-  const fetchUnreadCount = async () => {
-    try {
-      if (!user) {
-        return;
-      }
-
-      const userId =
-        user.userId ||
-        user.id ||
-        user._id;
-
-      if (!userId) {
-        console.error(
-          "Admin user ID not found."
-        );
-
-        return;
-      }
-
-      const response =
-        await getUnreadNotificationCount(
-          userId
-        );
-
-      console.log(
-        "Admin unread notification response:",
-        response
-      );
-
-      // Backend:
-      // {
-      //   success: true,
-      //   message: "...",
-      //   data: 5
-      // }
-
-      const count =
-        response?.data ??
-        response?.data?.data ??
-        0;
-
-      setUnreadCount(
-        Number(count) || 0
-      );
-    } catch (error) {
-      console.error(
-        "Admin notification count error:",
-        error
-      );
-
-      setUnreadCount(0);
-    }
-  };
 
   // ===================================================
   // ADMIN MENU
   // ===================================================
 
   const menuItems = [
+
     {
       label: "Dashboard",
       path: "/admin/dashboard",
       icon: <DashboardIcon />,
     },
+
+
+    {
+      label: "Profile",
+      path: "/admin/profile",
+      icon: <PersonIcon />,
+    },
+
 
     {
       label: "Users",
@@ -241,11 +391,13 @@ function AdminLayout() {
       icon: <PeopleIcon />,
     },
 
+
     {
       label: "Properties",
       path: "/admin/properties",
       icon: <HomeWorkIcon />,
     },
+
 
     {
       label: "Bookings",
@@ -253,11 +405,13 @@ function AdminLayout() {
       icon: <BookingIcon />,
     },
 
+
     {
       label: "Payments",
       path: "/admin/payments",
       icon: <PaymentsIcon />,
     },
+
 
     {
       label: "Complaints",
@@ -265,24 +419,37 @@ function AdminLayout() {
       icon: <ComplaintIcon />,
     },
 
+
     {
       label: "Locations",
       path: "/admin/locations",
       icon: <LocationIcon />,
     },
 
+
     {
       label: "Notifications",
       path: "/admin/notifications",
       icon: <NotificationsIcon />,
     },
+
   ];
+
+
+  // ===================================================
+  // PROFILE IMAGE
+  // ===================================================
+
+  const profileImage =
+    getProfileImageUrl();
+
 
   // ===================================================
   // DRAWER CONTENT
   // ===================================================
 
   const drawerContent = (
+
     <Box
       sx={{
         height: "100%",
@@ -332,8 +499,11 @@ function AdminLayout() {
                 "0 8px 20px rgba(0,0,0,.25)",
             }}
           >
+
             <HomeWorkIcon />
+
           </Box>
+
 
           {/* TITLE */}
 
@@ -346,7 +516,9 @@ function AdminLayout() {
                 lineHeight: 1.2,
               }}
             >
+
               RealEstate
+
               <Box
                 component="span"
                 sx={{
@@ -355,7 +527,9 @@ function AdminLayout() {
               >
                 Pro
               </Box>
+
             </Typography>
+
 
             <Typography
               sx={{
@@ -365,16 +539,20 @@ function AdminLayout() {
                 mt: 0.3,
               }}
             >
+
               Administration
+
             </Typography>
 
           </Box>
 
         </Box>
 
+
         {/* MOBILE CLOSE */}
 
         {isMobile && (
+
           <IconButton
             onClick={() =>
               setSidebarOpen(false)
@@ -383,11 +561,15 @@ function AdminLayout() {
               color: "#fff",
             }}
           >
+
             <CloseIcon />
+
           </IconButton>
+
         )}
 
       </Box>
+
 
       <Divider
         sx={{
@@ -395,6 +577,7 @@ function AdminLayout() {
             "rgba(255,255,255,.12)",
         }}
       />
+
 
       {/* =================================================
           ADMIN USER
@@ -418,10 +601,18 @@ function AdminLayout() {
             display: "flex",
             alignItems: "center",
             gap: 1.5,
+            cursor: "pointer",
           }}
+          onClick={() =>
+            navigate("/admin/profile")
+          }
         >
 
+          {/* USER AVATAR */}
+
           <Avatar
+            src={profileImage || undefined}
+            alt={getUserName()}
             sx={{
               width: 42,
               height: 42,
@@ -430,10 +621,12 @@ function AdminLayout() {
               fontWeight: 800,
             }}
           >
-            {getUserName()
-              .charAt(0)
-              .toUpperCase()}
+
+            {!profileImage &&
+              getUserInitials()}
+
           </Avatar>
+
 
           <Box
             sx={{
@@ -448,8 +641,11 @@ function AdminLayout() {
                 fontSize: ".9rem",
               }}
             >
+
               {getUserName()}
+
             </Typography>
+
 
             <Chip
               icon={
@@ -480,6 +676,7 @@ function AdminLayout() {
 
       </Box>
 
+
       {/* =================================================
           MENU TITLE
       ================================================= */}
@@ -495,8 +692,11 @@ function AdminLayout() {
           letterSpacing: 1.2,
         }}
       >
+
         ADMINISTRATION
+
       </Typography>
+
 
       {/* =================================================
           MENU
@@ -519,21 +719,33 @@ function AdminLayout() {
               `${item.path}/`
             );
 
+
+          const isNotificationItem =
+            item.path ===
+            "/admin/notifications";
+
+
           return (
+
             <ListItemButton
               key={item.path}
               component={NavLink}
               to={item.path}
               onClick={() => {
+
                 if (isMobile) {
+
                   setSidebarOpen(false);
+
                 }
+
               }}
               sx={{
                 minHeight: 48,
                 mb: 0.6,
                 px: 1.5,
                 borderRadius: 2.5,
+
                 color: isActive
                   ? "#fff"
                   : "rgba(255,255,255,.72)",
@@ -549,14 +761,19 @@ function AdminLayout() {
                     : "none",
 
                 "&:hover": {
+
                   backgroundColor:
                     isActive
                       ? "rgba(25,118,210,1)"
                       : "rgba(255,255,255,.08)",
+
                   color: "#fff",
+
                 },
               }}
             >
+
+              {/* ICON */}
 
               <ListItemIcon
                 sx={{
@@ -567,24 +784,45 @@ function AdminLayout() {
                 }}
               >
 
-                {item.path ===
-                "/admin/notifications" ? (
+                {isNotificationItem ? (
+
                   <Badge
                     badgeContent={
-                      unreadCount > 0
-                        ? unreadCount
-                        : 0
+                      notificationCount
                     }
                     color="error"
-                    max={99}
+                    max={999}
+                    showZero
+                    overlap="circular"
+                    sx={{
+                      "& .MuiBadge-badge":
+                        {
+                          fontWeight: 900,
+                          fontSize: "0.7rem",
+                          minWidth: 20,
+                          height: 20,
+                          borderRadius:
+                            "10px",
+                          border:
+                            "2px solid #071b34",
+                        },
+                    }}
                   >
+
                     {item.icon}
+
                   </Badge>
+
                 ) : (
+
                   item.icon
+
                 )}
 
               </ListItemIcon>
+
+
+              {/* LABEL */}
 
               <ListItemText
                 primary={item.label}
@@ -596,15 +834,22 @@ function AdminLayout() {
                 }}
               />
 
-              {item.path ===
-                "/admin/notifications" &&
-                unreadCount > 0 && (
+
+              {/* SIDEBAR COUNT */}
+
+              {isNotificationItem &&
+                notificationCount > 0 && (
+
                   <Chip
-                    label={unreadCount}
+                    label={
+                      notificationCount > 999
+                        ? "999+"
+                        : notificationCount
+                    }
                     size="small"
                     sx={{
                       height: 23,
-                      minWidth: 23,
+                      minWidth: 27,
                       color: "#fff",
                       backgroundColor:
                         "#d32f2f",
@@ -612,13 +857,17 @@ function AdminLayout() {
                       fontSize: ".7rem",
                     }}
                   />
+
                 )}
 
             </ListItemButton>
+
           );
+
         })}
 
       </List>
+
 
       {/* =================================================
           SIDEBAR FOOTER
@@ -637,6 +886,7 @@ function AdminLayout() {
               "rgba(255,255,255,.12)",
           }}
         />
+
 
         <ListItemButton
           onClick={handleLogout}
@@ -661,8 +911,11 @@ function AdminLayout() {
               color: "inherit",
             }}
           >
+
             <LogoutIcon />
+
           </ListItemIcon>
+
 
           <ListItemText
             primary="Logout"
@@ -678,11 +931,13 @@ function AdminLayout() {
     </Box>
   );
 
+
   // ===================================================
   // MAIN UI
   // ===================================================
 
   return (
+
     <Box
       sx={{
         display: "flex",
@@ -710,6 +965,7 @@ function AdminLayout() {
         {/* MOBILE DRAWER */}
 
         {isMobile ? (
+
           <Drawer
             variant="temporary"
             open={sidebarOpen}
@@ -727,8 +983,11 @@ function AdminLayout() {
               },
             }}
           >
+
             {drawerContent}
+
           </Drawer>
+
         ) : (
 
           /* DESKTOP DRAWER */
@@ -751,11 +1010,15 @@ function AdminLayout() {
               },
             }}
           >
+
             {drawerContent}
+
           </Drawer>
+
         )}
 
       </Box>
+
 
       {/* =================================================
           MAIN CONTENT
@@ -767,7 +1030,8 @@ function AdminLayout() {
           flexGrow: 1,
           width: {
             xs: "100%",
-            md: `calc(100% - ${DRAWER_WIDTH}px)`,
+            md:
+              `calc(100% - ${DRAWER_WIDTH}px)`,
           },
           minWidth: 0,
         }}
@@ -804,6 +1068,7 @@ function AdminLayout() {
             {/* MOBILE MENU */}
 
             {isMobile && (
+
               <IconButton
                 edge="start"
                 onClick={() =>
@@ -814,9 +1079,13 @@ function AdminLayout() {
                   color: "#172033",
                 }}
               >
+
                 <MenuIcon />
+
               </IconButton>
+
             )}
+
 
             {/* PAGE TITLE */}
 
@@ -836,8 +1105,11 @@ function AdminLayout() {
                   color: "#172033",
                 }}
               >
+
                 Admin Dashboard
+
               </Typography>
+
 
               <Typography
                 sx={{
@@ -850,15 +1122,26 @@ function AdminLayout() {
                   mt: 0.2,
                 }}
               >
+
                 Manage your RealEstate-Pro
                 platform
+
               </Typography>
 
             </Box>
 
-            {/* NOTIFICATION */}
 
-            <Tooltip title="Notifications">
+            {/* =================================================
+                TOP BAR NOTIFICATION ICON
+            ================================================= */}
+
+            <Tooltip
+              title={
+                notificationCount > 0
+                  ? `${notificationCount} notifications`
+                  : "No notifications"
+              }
+            >
 
               <IconButton
                 onClick={() =>
@@ -869,36 +1152,69 @@ function AdminLayout() {
                 sx={{
                   mr: 1,
                   color: "#526071",
+                  width: 48,
+                  height: 48,
                 }}
               >
 
                 <Badge
                   badgeContent={
-                    unreadCount > 0
-                      ? unreadCount
-                      : 0
+                    notificationCount
                   }
                   color="error"
-                  max={99}
+                  max={999}
+                  showZero
+                  overlap="circular"
+                  sx={{
+                    "& .MuiBadge-badge":
+                      {
+                        fontWeight: 900,
+                        fontSize: "0.72rem",
+                        minWidth: 21,
+                        height: 21,
+                        borderRadius:
+                          "11px",
+                        border:
+                          "2px solid white",
+                      },
+                  }}
                 >
-                  <NotificationsIcon />
+
+                  <NotificationsIcon
+                    sx={{
+                      fontSize: 28,
+                    }}
+                  />
+
                 </Badge>
 
               </IconButton>
 
             </Tooltip>
 
-            {/* USER */}
+
+            {/* =================================================
+                USER
+            ================================================= */}
 
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
                 gap: 1.2,
+                cursor: "pointer",
               }}
+              onClick={() =>
+                navigate("/admin/profile")
+              }
             >
 
               <Avatar
+                src={
+                  profileImage ||
+                  undefined
+                }
+                alt={getUserName()}
                 sx={{
                   width: 38,
                   height: 38,
@@ -908,10 +1224,12 @@ function AdminLayout() {
                   fontSize: ".9rem",
                 }}
               >
-                {getUserName()
-                  .charAt(0)
-                  .toUpperCase()}
+
+                {!profileImage &&
+                  getUserInitials()}
+
               </Avatar>
+
 
               <Box
                 sx={{
@@ -929,8 +1247,11 @@ function AdminLayout() {
                     lineHeight: 1.2,
                   }}
                 >
+
                   {getUserName()}
+
                 </Typography>
+
 
                 <Typography
                   sx={{
@@ -939,7 +1260,9 @@ function AdminLayout() {
                     mt: 0.2,
                   }}
                 >
+
                   {getUserRole()}
+
                 </Typography>
 
               </Box>
@@ -949,6 +1272,7 @@ function AdminLayout() {
           </Toolbar>
 
         </AppBar>
+
 
         {/* =================================================
             PAGE CONTENT
@@ -972,6 +1296,7 @@ function AdminLayout() {
       </Box>
 
     </Box>
+
   );
 }
 

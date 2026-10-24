@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -21,6 +22,10 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Paper,
+  Avatar,
+  Stack,
+  Badge,
 } from "@mui/material";
 
 import {
@@ -36,6 +41,11 @@ import {
   LocationOn,
   Search,
   EventAvailable,
+  TrendingUp,
+  PendingActions,
+  TaskAlt,
+  Block,
+  ArrowForward,
 } from "@mui/icons-material";
 
 import {
@@ -50,7 +60,7 @@ import {
 // BACKEND URL
 // =====================================================
 
-const BACKEND_URL = "http://localhost:9090";
+const BACKEND_URL = "https://realestate-pro-backend.onrender.com";
 
 // =====================================================
 // GET BOOKING STATUS
@@ -201,10 +211,6 @@ const normalizeImageUrl = (value) => {
     return null;
   }
 
-  // ---------------------------------------------------
-  // Already full URL
-  // ---------------------------------------------------
-
   if (
     imageValue.startsWith("http://") ||
     imageValue.startsWith("https://")
@@ -212,22 +218,12 @@ const normalizeImageUrl = (value) => {
     return imageValue;
   }
 
-  // ---------------------------------------------------
-  // Blob / data URL
-  // ---------------------------------------------------
-
   if (
     imageValue.startsWith("blob:") ||
     imageValue.startsWith("data:")
   ) {
     return imageValue;
   }
-
-  // ---------------------------------------------------
-  // Windows path
-  // Example:
-  // C:\uploads\house.jpg
-  // ---------------------------------------------------
 
   if (
     imageValue.includes("\\") ||
@@ -242,21 +238,9 @@ const normalizeImageUrl = (value) => {
     return `${BACKEND_URL}/uploads/${imageValue}`;
   }
 
-  // ---------------------------------------------------
-  // Starts with slash
-  // Example:
-  // /uploads/house.jpg
-  // /images/house.jpg
-  // /api/...
-  // ---------------------------------------------------
-
   if (imageValue.startsWith("/")) {
     return `${BACKEND_URL}${imageValue}`;
   }
-
-  // ---------------------------------------------------
-  // uploads/house.jpg
-  // ---------------------------------------------------
 
   if (
     imageValue.startsWith("uploads/")
@@ -264,19 +248,11 @@ const normalizeImageUrl = (value) => {
     return `${BACKEND_URL}/${imageValue}`;
   }
 
-  // ---------------------------------------------------
-  // api/... path
-  // ---------------------------------------------------
-
   if (
     imageValue.startsWith("api/")
   ) {
     return `${BACKEND_URL}/${imageValue}`;
   }
-
-  // ---------------------------------------------------
-  // Otherwise assume it is a filename
-  // ---------------------------------------------------
 
   return `${BACKEND_URL}/uploads/${imageValue}`;
 };
@@ -290,17 +266,9 @@ const extractImageUrl = (image) => {
     return null;
   }
 
-  // ---------------------------------------------------
-  // String image
-  // ---------------------------------------------------
-
   if (typeof image === "string") {
     return normalizeImageUrl(image);
   }
-
-  // ---------------------------------------------------
-  // Object image
-  // ---------------------------------------------------
 
   if (typeof image === "object") {
     const possibleValues = [
@@ -342,17 +310,9 @@ const extractImageArray = (response) => {
     return [];
   }
 
-  // ---------------------------------------------------
-  // Direct array
-  // ---------------------------------------------------
-
   if (Array.isArray(response)) {
     return response;
   }
-
-  // ---------------------------------------------------
-  // Common Spring Boot response structures
-  // ---------------------------------------------------
 
   if (Array.isArray(response.data)) {
     return response.data;
@@ -386,10 +346,6 @@ const extractImageArray = (response) => {
   if (Array.isArray(response.content)) {
     return response.content;
   }
-
-  // ---------------------------------------------------
-  // Single image object
-  // ---------------------------------------------------
 
   if (
     response.imageUrl ||
@@ -440,10 +396,6 @@ const getBookingImageFromBooking = (booking) => {
   const property =
     booking?.property || {};
 
-  // ---------------------------------------------------
-  // Images already included in booking
-  // ---------------------------------------------------
-
   const images =
     property?.images ||
     booking?.propertyImages ||
@@ -462,10 +414,6 @@ const getBookingImageFromBooking = (booking) => {
       }
     }
   }
-
-  // ---------------------------------------------------
-  // Single image fields
-  // ---------------------------------------------------
 
   const possibleImages = [
     booking?.imageUrl,
@@ -574,10 +522,6 @@ function OwnerBookings() {
                 booking?.id ||
                 booking?.bookingId;
 
-              // ------------------------------------------------
-              // First check if booking already has an image
-              // ------------------------------------------------
-
               const existingImage =
                 getBookingImageFromBooking(
                   booking
@@ -601,10 +545,6 @@ function OwnerBookings() {
                     existingImage,
                 };
               }
-
-              // ------------------------------------------------
-              // Property ID required
-              // ------------------------------------------------
 
               if (!propertyId) {
 
@@ -651,10 +591,6 @@ function OwnerBookings() {
                   propertyId,
                   imageArray
                 );
-
-                // ------------------------------------------------
-                // Extract first valid image URL
-                // ------------------------------------------------
 
                 let imageUrl = null;
 
@@ -800,10 +736,6 @@ function OwnerBookings() {
         ownerId
       );
 
-      // ------------------------------------------------
-      // GET BOOKINGS
-      // ------------------------------------------------
-
       const response =
         await getOwnerBookings(
           ownerId
@@ -856,10 +788,6 @@ function OwnerBookings() {
         data
       );
 
-      // ------------------------------------------------
-      // DEBUG BOOKINGS
-      // ------------------------------------------------
-
       data.forEach(
         (booking) => {
 
@@ -902,18 +830,10 @@ function OwnerBookings() {
         }
       );
 
-      // ------------------------------------------------
-      // LOAD IMAGES
-      // ------------------------------------------------
-
       const bookingsWithImages =
         await loadPropertyImages(
           data
         );
-
-      // ------------------------------------------------
-      // SAVE BOOKINGS
-      // ------------------------------------------------
 
       setBookings(
         bookingsWithImages
@@ -1284,12 +1204,19 @@ function OwnerBookings() {
           justifyContent: "center",
           flexDirection: "column",
           gap: 2,
+          background:
+            "linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)",
         }}
       >
 
-        <CircularProgress />
+        <CircularProgress size={48} />
 
-        <Typography color="text.secondary">
+        <Typography
+          color="text.secondary"
+          sx={{
+            fontWeight: 600,
+          }}
+        >
           Loading your bookings...
         </Typography>
 
@@ -1305,10 +1232,14 @@ function OwnerBookings() {
 
     <Box
       sx={{
+        minHeight: "100vh",
         p: {
           xs: 2,
-          md: 3,
+          sm: 3,
+          md: 4,
         },
+        background:
+          "linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f8fafc 100%)",
       }}
     >
 
@@ -1316,66 +1247,123 @@ function OwnerBookings() {
           HEADER
       ================================================= */}
 
-      <Box
+      <Card
+        elevation={0}
         sx={{
-          display: "flex",
-          justifyContent:
-            "space-between",
-          alignItems: {
-            xs: "flex-start",
-            md: "center",
-          },
-          flexDirection: {
-            xs: "column",
-            md: "row",
-          },
-          gap: 2,
-          mb: 4,
+          mb: 3,
+          borderRadius: 4,
+          overflow: "hidden",
+          border: "1px solid",
+          borderColor: "divider",
+          background:
+            "linear-gradient(135deg, #ffffff 0%, #f8faff 100%)",
         }}
       >
 
-        <Box>
+        <Box
+          sx={{
+            p: {
+              xs: 2.5,
+              md: 3.5,
+            },
+            display: "flex",
+            justifyContent:
+              "space-between",
+            alignItems: {
+              xs: "flex-start",
+              md: "center",
+            },
+            flexDirection: {
+              xs: "column",
+              md: "row",
+            },
+            gap: 2,
+          }}
+        >
 
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: 800,
-            }}
-          >
-            Bookings
-          </Typography>
+          <Box>
 
-          <Typography
-            color="text.secondary"
-            sx={{
-              mt: 0.5,
-            }}
-          >
-            Manage customer bookings
-            for your properties
-          </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                mb: 0.5,
+              }}
+            >
+
+              <Avatar
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 2.5,
+                }}
+              >
+                <EventAvailable />
+              </Avatar>
+
+              <Box>
+
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 800,
+                    letterSpacing: -0.5,
+                  }}
+                >
+                  Bookings
+                </Typography>
+
+                <Typography
+                  color="text.secondary"
+                  sx={{
+                    fontSize: 14,
+                  }}
+                >
+                  Manage customer bookings
+                  for your properties
+                </Typography>
+
+              </Box>
+
+            </Box>
+
+          </Box>
+
+          <Tooltip title="Refresh Bookings">
+
+            <IconButton
+              onClick={loadBookings}
+              disabled={loading}
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: 2.5,
+                border: "1px solid",
+                borderColor:
+                  "divider",
+                backgroundColor:
+                  "background.paper",
+                "&:hover": {
+                  backgroundColor:
+                    "action.hover",
+                  transform:
+                    "rotate(45deg)",
+                },
+                transition:
+                  "all 0.25s ease",
+              }}
+            >
+
+              <Refresh />
+
+            </IconButton>
+
+          </Tooltip>
 
         </Box>
 
-        <Tooltip title="Refresh Bookings">
-
-          <IconButton
-            onClick={loadBookings}
-            disabled={loading}
-            sx={{
-              border: 1,
-              borderColor:
-                "divider",
-            }}
-          >
-
-            <Refresh />
-
-          </IconButton>
-
-        </Tooltip>
-
-      </Box>
+      </Card>
 
       {/* =================================================
           ERROR
@@ -1387,25 +1375,425 @@ function OwnerBookings() {
           severity="error"
           sx={{
             mb: 3,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor:
+              "error.light",
           }}
         >
           {error}
         </Alert>
+
       )}
+
+      {/* =================================================
+          STATISTICS
+      ================================================= */}
+
+      <Grid
+        container
+        spacing={2}
+        sx={{
+          mb: 3,
+        }}
+      >
+
+        <Grid
+          size={{
+            xs: 12,
+            sm: 6,
+            lg: 3,
+          }}
+        >
+
+          <Card
+            elevation={0}
+            sx={{
+              height: "100%",
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor:
+                "divider",
+              overflow: "hidden",
+              background:
+                "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+            }}
+          >
+
+            <CardContent
+              sx={{
+                p: 2.5,
+              }}
+            >
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems:
+                    "center",
+                }}
+              >
+
+                <Box>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      fontWeight: 600,
+                    }}
+                  >
+                    Total Bookings
+                  </Typography>
+
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 800,
+                      mt: 0.5,
+                    }}
+                  >
+                    {bookings.length}
+                  </Typography>
+
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    All customer requests
+                  </Typography>
+
+                </Box>
+
+                <Avatar
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 2.5,
+                  }}
+                >
+                  <CalendarMonth />
+                </Avatar>
+
+              </Box>
+
+            </CardContent>
+
+          </Card>
+
+        </Grid>
+
+        <Grid
+          size={{
+            xs: 12,
+            sm: 6,
+            lg: 3,
+          }}
+        >
+
+          <Card
+            elevation={0}
+            sx={{
+              height: "100%",
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor:
+                "warning.light",
+              background:
+                "linear-gradient(135deg, #fffdf5 0%, #fff8e1 100%)",
+            }}
+          >
+
+            <CardContent
+              sx={{
+                p: 2.5,
+              }}
+            >
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems:
+                    "center",
+                }}
+              >
+
+                <Box>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      fontWeight: 600,
+                    }}
+                  >
+                    Pending
+                  </Typography>
+
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 800,
+                      mt: 0.5,
+                    }}
+                  >
+                    {
+                      bookings.filter(
+                        (booking) =>
+                          getBookingStatus(
+                            booking
+                          ) ===
+                          "PENDING"
+                      ).length
+                    }
+                  </Typography>
+
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Need your attention
+                  </Typography>
+
+                </Box>
+
+                <Avatar
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 2.5,
+                  }}
+                >
+                  <PendingActions />
+                </Avatar>
+
+              </Box>
+
+            </CardContent>
+
+          </Card>
+
+        </Grid>
+
+        <Grid
+          size={{
+            xs: 12,
+            sm: 6,
+            lg: 3,
+          }}
+        >
+
+          <Card
+            elevation={0}
+            sx={{
+              height: "100%",
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor:
+                "success.light",
+              background:
+                "linear-gradient(135deg, #f5fff8 0%, #ecfdf3 100%)",
+            }}
+          >
+
+            <CardContent
+              sx={{
+                p: 2.5,
+              }}
+            >
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems:
+                    "center",
+                }}
+              >
+
+                <Box>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      fontWeight: 600,
+                    }}
+                  >
+                    Accepted
+                  </Typography>
+
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 800,
+                      mt: 0.5,
+                    }}
+                  >
+                    {
+                      bookings.filter(
+                        (booking) =>
+                          getBookingStatus(
+                            booking
+                          ) ===
+                          "ACCEPTED"
+                      ).length
+                    }
+                  </Typography>
+
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Active bookings
+                  </Typography>
+
+                </Box>
+
+                <Avatar
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 2.5,
+                  }}
+                >
+                  <CheckCircle />
+                </Avatar>
+
+              </Box>
+
+            </CardContent>
+
+          </Card>
+
+        </Grid>
+
+        <Grid
+          size={{
+            xs: 12,
+            sm: 6,
+            lg: 3,
+          }}
+        >
+
+          <Card
+            elevation={0}
+            sx={{
+              height: "100%",
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor:
+                "info.light",
+              background:
+                "linear-gradient(135deg, #f5fbff 0%, #eaf7ff 100%)",
+            }}
+          >
+
+            <CardContent
+              sx={{
+                p: 2.5,
+              }}
+            >
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems:
+                    "center",
+                }}
+              >
+
+                <Box>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      fontWeight: 600,
+                    }}
+                  >
+                    Completed
+                  </Typography>
+
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 800,
+                      mt: 0.5,
+                    }}
+                  >
+                    {
+                      bookings.filter(
+                        (booking) =>
+                          getBookingStatus(
+                            booking
+                          ) ===
+                          "COMPLETED"
+                      ).length
+                    }
+                  </Typography>
+
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Successfully completed
+                  </Typography>
+
+                </Box>
+
+                <Avatar
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 2.5,
+                  }}
+                >
+                  <TaskAlt />
+                </Avatar>
+
+              </Box>
+
+            </CardContent>
+
+          </Card>
+
+        </Grid>
+
+      </Grid>
 
       {/* =================================================
           SEARCH + FILTER
       ================================================= */}
 
       <Card
-        elevation={2}
+        elevation={0}
         sx={{
           borderRadius: 3,
-          mb: 4,
+          mb: 3,
+          border: "1px solid",
+          borderColor:
+            "divider",
+          backgroundColor:
+            "background.paper",
         }}
       >
 
-        <CardContent>
+        <CardContent
+          sx={{
+            p: {
+              xs: 2,
+              md: 2.5,
+            },
+          }}
+        >
 
           <Grid
             container
@@ -1440,6 +1828,12 @@ function OwnerBookings() {
                     />
                   ),
                 }}
+                sx={{
+                  "& .MuiOutlinedInput-root":
+                    {
+                      borderRadius: 2.5,
+                    },
+                }}
               />
 
             </Grid>
@@ -1461,6 +1855,12 @@ function OwnerBookings() {
                     event.target.value
                   )
                 }
+                sx={{
+                  "& .MuiOutlinedInput-root":
+                    {
+                      borderRadius: 2.5,
+                    },
+                }}
               >
 
                 <MenuItem value="ALL">
@@ -1498,7 +1898,7 @@ function OwnerBookings() {
       </Card>
 
       {/* =================================================
-          SUMMARY
+          SUMMARY FILTER CHIPS
       ================================================= */}
 
       <Box
@@ -1507,6 +1907,7 @@ function OwnerBookings() {
           gap: 1,
           flexWrap: "wrap",
           mb: 3,
+          alignItems: "center",
         }}
       >
 
@@ -1516,9 +1917,14 @@ function OwnerBookings() {
           }
           label={`${filteredBookings.length} Bookings`}
           variant="outlined"
+          sx={{
+            fontWeight: 600,
+            borderRadius: 2,
+          }}
         />
 
         <Chip
+          icon={<PendingActions />}
           label={`Pending: ${
             bookings.filter(
               (booking) =>
@@ -1529,9 +1935,14 @@ function OwnerBookings() {
           }`}
           color="warning"
           variant="outlined"
+          sx={{
+            fontWeight: 600,
+            borderRadius: 2,
+          }}
         />
 
         <Chip
+          icon={<CheckCircle />}
           label={`Accepted: ${
             bookings.filter(
               (booking) =>
@@ -1542,9 +1953,14 @@ function OwnerBookings() {
           }`}
           color="success"
           variant="outlined"
+          sx={{
+            fontWeight: 600,
+            borderRadius: 2,
+          }}
         />
 
         <Chip
+          icon={<DoneAll />}
           label={`Completed: ${
             bookings.filter(
               (booking) =>
@@ -1555,6 +1971,10 @@ function OwnerBookings() {
           }`}
           color="info"
           variant="outlined"
+          sx={{
+            fontWeight: 600,
+            borderRadius: 2,
+          }}
         />
 
       </Box>
@@ -1567,29 +1987,41 @@ function OwnerBookings() {
       0 ? (
 
         <Card
-          elevation={2}
+          elevation={0}
           sx={{
-            borderRadius: 3,
+            borderRadius: 4,
             textAlign: "center",
-            py: 8,
+            py: 10,
+            border: "1px solid",
+            borderColor:
+              "divider",
+            background:
+              "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
           }}
         >
 
           <CardContent>
 
-            <EventAvailable
+            <Avatar
               sx={{
-                fontSize: 70,
-                color:
-                  "text.secondary",
+                width: 90,
+                height: 90,
+                mx: "auto",
                 mb: 2,
+                borderRadius: 3,
               }}
-            />
+            >
+              <EventAvailable
+                sx={{
+                  fontSize: 48,
+                }}
+              />
+            </Avatar>
 
             <Typography
-              variant="h6"
+              variant="h5"
               sx={{
-                fontWeight: 700,
+                fontWeight: 800,
               }}
             >
               No bookings found
@@ -1599,6 +2031,8 @@ function OwnerBookings() {
               color="text.secondary"
               sx={{
                 mt: 1,
+                maxWidth: 500,
+                mx: "auto",
               }}
             >
 
@@ -1730,22 +2164,30 @@ function OwnerBookings() {
                 >
 
                   <Card
-                    elevation={3}
+                    elevation={0}
                     sx={{
                       height: "100%",
                       display: "flex",
                       flexDirection:
                         "column",
-                      borderRadius: 3,
+                      borderRadius: 4,
                       overflow:
                         "hidden",
+                      border: "1px solid",
+                      borderColor:
+                        "divider",
+                      backgroundColor:
+                        "background.paper",
                       transition:
-                        "0.3s",
+                        "all 0.3s ease",
 
                       "&:hover": {
                         transform:
-                          "translateY(-4px)",
-                        boxShadow: 6,
+                          "translateY(-7px)",
+                        boxShadow:
+                          "0 16px 40px rgba(15,23,42,0.12)",
+                        borderColor:
+                          "primary.light",
                       },
                     }}
                   >
@@ -1760,9 +2202,9 @@ function OwnerBookings() {
                           "relative",
                         width:
                           "100%",
-                        height: 190,
-                        backgroundColor:
-                          "#f5f5f5",
+                        height: 220,
+                        background:
+                          "linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%)",
                         overflow:
                           "hidden",
                       }}
@@ -1819,14 +2261,98 @@ function OwnerBookings() {
                               "cover",
                             display:
                               "block",
+                            transition:
+                              "transform 0.5s ease",
+
+                            "&:hover": {
+                              transform:
+                                "scale(1.06)",
+                            },
                           }}
                         />
 
                       ) : null}
 
-                      {/* =================================
-                          FALLBACK
-                      ================================= */}
+                      {/* IMAGE GRADIENT */}
+
+                      {image && (
+
+                        <Box
+                          sx={{
+                            position:
+                              "absolute",
+                            inset: 0,
+                            background:
+                              "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.45))",
+                            pointerEvents:
+                              "none",
+                          }}
+                        />
+
+                      )}
+
+                      {/* STATUS */}
+
+                      <Chip
+                        size="small"
+                        label={getStatusLabel(
+                          status
+                        )}
+                        color={getStatusColor(
+                          status
+                        )}
+                        sx={{
+                          position:
+                            "absolute",
+                          top: 14,
+                          right: 14,
+                          fontWeight: 800,
+                          borderRadius: 2,
+                          backdropFilter:
+                            "blur(8px)",
+                          boxShadow:
+                            "0 4px 12px rgba(0,0,0,0.15)",
+                        }}
+                      />
+
+                      {/* BOOKING ID */}
+
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          position:
+                            "absolute",
+                          bottom: 12,
+                          left: 12,
+                          px: 1.5,
+                          py: 0.7,
+                          borderRadius: 2,
+                          backgroundColor:
+                            "rgba(0,0,0,0.55)",
+                          color:
+                            "white",
+                          backdropFilter:
+                            "blur(8px)",
+                        }}
+                      >
+
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 700,
+                          }}
+                        >
+                          Booking #
+                          {String(
+                            bookingId
+                          ).slice(
+                            -6
+                          )}
+                        </Typography>
+
+                      </Paper>
+
+                      {/* FALLBACK */}
 
                       <Box
                         className="image-fallback"
@@ -1844,8 +2370,8 @@ function OwnerBookings() {
                             "center",
                           flexDirection:
                             "column",
-                          backgroundColor:
-                            "#f5f5f5",
+                          background:
+                            "linear-gradient(135deg, #eef2f7 0%, #f8fafc 100%)",
                         }}
                       >
 
@@ -1862,6 +2388,7 @@ function OwnerBookings() {
                           color="text.secondary"
                           sx={{
                             mt: 1,
+                            fontWeight: 600,
                           }}
                         >
                           Property Image
@@ -1879,110 +2406,116 @@ function OwnerBookings() {
                     <CardContent
                       sx={{
                         flexGrow: 1,
+                        p: 2.5,
                       }}
                     >
 
-                      {/* TITLE + STATUS */}
+                      {/* TITLE */}
 
-                      <Box
+                      <Typography
+                        variant="h6"
                         sx={{
-                          display:
-                            "flex",
-                          justifyContent:
-                            "space-between",
-                          alignItems:
-                            "flex-start",
-                          gap: 1,
+                          fontWeight:
+                            800,
+                          lineHeight:
+                            1.3,
                           mb: 2,
+                          minHeight: 45,
                         }}
                       >
-
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            fontWeight:
-                              700,
-                            lineHeight:
-                              1.3,
-                          }}
-                        >
-                          {propertyTitle}
-                        </Typography>
-
-                        <Chip
-                          size="small"
-                          label={getStatusLabel(
-                            status
-                          )}
-                          color={getStatusColor(
-                            status
-                          )}
-                        />
-
-                      </Box>
+                        {propertyTitle}
+                      </Typography>
 
                       {/* CUSTOMER */}
 
-                      <Box
+                      <Paper
+                        elevation={0}
                         sx={{
-                          display:
-                            "flex",
-                          gap: 1,
+                          p: 1.5,
                           mb: 1.5,
+                          borderRadius: 2.5,
+                          backgroundColor:
+                            "action.hover",
                         }}
                       >
 
-                        <Person
-                          fontSize="small"
-                          color="action"
-                        />
+                        <Box
+                          sx={{
+                            display:
+                              "flex",
+                            gap: 1.2,
+                          }}
+                        >
 
-                        <Box>
-
-                          <Typography
-                            variant="body2"
+                          <Avatar
                             sx={{
-                              fontWeight:
-                                600,
+                              width: 38,
+                              height: 38,
+                              borderRadius: 2,
                             }}
                           >
-                            Customer
-                          </Typography>
+                            <Person
+                              fontSize="small"
+                            />
+                          </Avatar>
 
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
+                          <Box
+                            sx={{
+                              minWidth: 0,
+                            }}
                           >
-                            {customerName}
-                          </Typography>
-
-                          {customerEmail && (
 
                             <Typography
                               variant="caption"
                               color="text.secondary"
-                              display="block"
+                              sx={{
+                                fontWeight:
+                                  600,
+                              }}
                             >
-                              {customerEmail}
+                              CUSTOMER
                             </Typography>
-
-                          )}
-
-                          {customerMobile && (
 
                             <Typography
-                              variant="caption"
-                              color="text.secondary"
-                              display="block"
+                              variant="body2"
+                              sx={{
+                                fontWeight:
+                                  700,
+                              }}
                             >
-                              {customerMobile}
+                              {customerName}
                             </Typography>
 
-                          )}
+                            {customerEmail && (
+
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                display="block"
+                                noWrap
+                              >
+                                {customerEmail}
+                              </Typography>
+
+                            )}
+
+                            {customerMobile && (
+
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                display="block"
+                              >
+                                {customerMobile}
+                              </Typography>
+
+                            )}
+
+                          </Box>
 
                         </Box>
 
-                      </Box>
+                      </Paper>
 
                       {/* VISIT DATE */}
 
@@ -1990,7 +2523,7 @@ function OwnerBookings() {
                         sx={{
                           display:
                             "flex",
-                          gap: 1,
+                          gap: 1.2,
                           mb: 1.5,
                         }}
                       >
@@ -2003,18 +2536,22 @@ function OwnerBookings() {
                         <Box>
 
                           <Typography
-                            variant="body2"
+                            variant="caption"
+                            color="text.secondary"
                             sx={{
                               fontWeight:
                                 600,
                             }}
                           >
-                            Visit Date
+                            VISIT DATE
                           </Typography>
 
                           <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                              fontWeight:
+                                600,
+                            }}
                           >
                             {formatDate(
                               visitDate
@@ -2033,25 +2570,50 @@ function OwnerBookings() {
                             "flex",
                           alignItems:
                             "center",
-                          gap: 1,
+                          gap: 1.2,
                           mb: 1.5,
                         }}
                       >
 
-                        <AttachMoney
-                          fontSize="small"
-                        />
-
-                        <Typography
+                        <Avatar
                           sx={{
-                            fontWeight:
-                              700,
+                            width: 34,
+                            height: 34,
+                            borderRadius: 2,
                           }}
                         >
-                          {formatPrice(
-                            price
-                          )}
-                        </Typography>
+                          <AttachMoney
+                            fontSize="small"
+                          />
+                        </Avatar>
+
+                        <Box>
+
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{
+                              fontWeight:
+                                600,
+                            }}
+                          >
+                            PROPERTY PRICE
+                          </Typography>
+
+                          <Typography
+                            sx={{
+                              fontWeight:
+                                800,
+                              fontSize:
+                                17,
+                            }}
+                          >
+                            {formatPrice(
+                              price
+                            )}
+                          </Typography>
+
+                        </Box>
 
                       </Box>
 
@@ -2066,6 +2628,7 @@ function OwnerBookings() {
                             alignItems:
                               "center",
                             gap: 1,
+                            mt: 1,
                           }}
                         >
 
@@ -2077,6 +2640,7 @@ function OwnerBookings() {
                           <Typography
                             variant="body2"
                             color="text.secondary"
+                            noWrap
                           >
                             {location}
                           </Typography>
@@ -2101,6 +2665,8 @@ function OwnerBookings() {
                         gap: 1,
                         flexWrap:
                           "wrap",
+                        backgroundColor:
+                          "rgba(248,250,252,0.7)",
                       }}
                     >
 
@@ -2109,6 +2675,14 @@ function OwnerBookings() {
                         startIcon={
                           <Visibility />
                         }
+                        endIcon={
+                          <ArrowForward
+                            sx={{
+                              fontSize:
+                                16,
+                            }}
+                          />
+                        }
                         onClick={() =>
                           navigate(
                             `/owner/bookings/${bookingId}`
@@ -2116,6 +2690,11 @@ function OwnerBookings() {
                         }
                         sx={{
                           flex: 1,
+                          minWidth:
+                            100,
+                          borderRadius: 2,
+                          fontWeight:
+                            700,
                         }}
                       >
                         View
@@ -2140,6 +2719,16 @@ function OwnerBookings() {
                                   "ACCEPT"
                                 )
                               }
+                              sx={{
+                                borderRadius:
+                                  2,
+                                border:
+                                  "1px solid",
+                                borderColor:
+                                  "success.light",
+                                backgroundColor:
+                                  "success.50",
+                              }}
                             >
                               <CheckCircle />
                             </IconButton>
@@ -2158,6 +2747,14 @@ function OwnerBookings() {
                                   "REJECT"
                                 )
                               }
+                              sx={{
+                                borderRadius:
+                                  2,
+                                border:
+                                  "1px solid",
+                                borderColor:
+                                  "error.light",
+                              }}
                             >
                               <Cancel />
                             </IconButton>
@@ -2185,6 +2782,14 @@ function OwnerBookings() {
                                 "COMPLETE"
                               )
                             }
+                            sx={{
+                              borderRadius:
+                                2,
+                              border:
+                                "1px solid",
+                              borderColor:
+                                "primary.light",
+                            }}
                           >
                             <DoneAll />
                           </IconButton>
@@ -2214,21 +2819,72 @@ function OwnerBookings() {
         onClose={
           closeActionDialog
         }
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            minWidth: {
+              xs: "90%",
+              sm: 430,
+            },
+          },
+        }}
       >
 
-        <DialogTitle>
-          {getActionTitle()}
+        <DialogTitle
+          sx={{
+            fontWeight: 800,
+            pb: 1,
+          }}
+        >
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+            }}
+          >
+
+            <Avatar
+              sx={{
+                borderRadius: 2,
+              }}
+            >
+              {selectedAction ===
+              "ACCEPT" ? (
+                <CheckCircle />
+              ) : selectedAction ===
+                "REJECT" ? (
+                <Cancel />
+              ) : (
+                <DoneAll />
+              )}
+            </Avatar>
+
+            {getActionTitle()}
+
+          </Box>
+
         </DialogTitle>
 
         <DialogContent>
 
-          <DialogContentText>
+          <DialogContentText
+            sx={{
+              lineHeight: 1.7,
+            }}
+          >
             {getActionMessage()}
           </DialogContentText>
 
         </DialogContent>
 
-        <DialogActions>
+        <DialogActions
+          sx={{
+            p: 2.5,
+            pt: 1,
+          }}
+        >
 
           <Button
             onClick={
@@ -2237,6 +2893,10 @@ function OwnerBookings() {
             disabled={
               actionLoading
             }
+            sx={{
+              borderRadius: 2,
+              fontWeight: 700,
+            }}
           >
             Cancel
           </Button>
@@ -2255,6 +2915,11 @@ function OwnerBookings() {
             disabled={
               actionLoading
             }
+            sx={{
+              borderRadius: 2,
+              fontWeight: 700,
+              px: 3,
+            }}
           >
             {actionLoading
               ? "Updating..."

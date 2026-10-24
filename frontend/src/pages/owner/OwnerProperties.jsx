@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -22,6 +23,11 @@ import {
   Divider,
   TextField,
   MenuItem,
+  InputAdornment,
+  Avatar,
+  Paper,
+  Stack,
+  LinearProgress,
 } from "@mui/material";
 
 import {
@@ -35,6 +41,15 @@ import {
   Bed,
   SquareFoot,
   AttachMoney,
+  Search,
+  Apartment,
+  TrendingUp,
+  Inventory2,
+  CheckCircle,
+  PendingActions,
+  Close,
+  CalendarMonth,
+  MoreHoriz,
 } from "@mui/icons-material";
 
 import {
@@ -47,7 +62,7 @@ import {
 // BACKEND URL
 // =====================================================
 
-const BACKEND_URL = "http://localhost:9090";
+const BACKEND_URL = "https://realestate-pro-backend.onrender.com";
 
 // =====================================================
 // BUILD IMAGE URL
@@ -704,6 +719,34 @@ function OwnerProperties() {
     };
 
   // ===================================================
+  // STATISTICS
+  // ===================================================
+
+  const totalProperties =
+    properties.length;
+
+  const availableProperties =
+    properties.filter(
+      (property) =>
+        getPropertyStatus(property) ===
+        "AVAILABLE"
+    ).length;
+
+  const pendingProperties =
+    properties.filter(
+      (property) =>
+        getPropertyStatus(property) ===
+        "PENDING_APPROVAL"
+    ).length;
+
+  const soldProperties =
+    properties.filter(
+      (property) =>
+        getPropertyStatus(property) ===
+        "SOLD"
+    ).length;
+
+  // ===================================================
   // LOADING
   // ===================================================
 
@@ -717,12 +760,51 @@ function OwnerProperties() {
           justifyContent: "center",
           flexDirection: "column",
           gap: 2,
+          background:
+            "linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)",
         }}
       >
-        <CircularProgress />
+        <Box
+          sx={{
+            width: 78,
+            height: 78,
+            borderRadius: "24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background:
+              "linear-gradient(135deg, #2563eb, #7c3aed)",
+            boxShadow:
+              "0 16px 40px rgba(37,99,235,0.25)",
+          }}
+        >
+          <HomeWork
+            sx={{
+              color: "white",
+              fontSize: 38,
+            }}
+          />
+        </Box>
 
-        <Typography color="text.secondary">
+        <CircularProgress
+          size={28}
+          thickness={4}
+        />
+
+        <Typography
+          sx={{
+            fontWeight: 700,
+            color: "#334155",
+          }}
+        >
           Loading your properties...
+        </Typography>
+
+        <Typography
+          variant="body2"
+          color="text.secondary"
+        >
+          Preparing your real estate portfolio
         </Typography>
       </Box>
     );
@@ -735,83 +817,206 @@ function OwnerProperties() {
   return (
     <Box
       sx={{
+        minHeight: "100vh",
         p: {
           xs: 2,
-          md: 3,
+          sm: 3,
+          md: 4,
         },
+        background:
+          "linear-gradient(135deg, #f8fafc 0%, #eef2ff 45%, #f8fafc 100%)",
       }}
     >
       {/* =================================================
-          HEADER
+          PAGE HEADER
       ================================================= */}
 
-      <Box
+      <Paper
+        elevation={0}
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: {
-            xs: "flex-start",
-            md: "center",
+          position: "relative",
+          overflow: "hidden",
+          borderRadius: 4,
+          mb: 3,
+          p: {
+            xs: 2.5,
+            md: 4,
           },
-          flexDirection: {
-            xs: "column",
-            md: "row",
-          },
-          gap: 2,
-          mb: 4,
+          color: "white",
+          background:
+            "linear-gradient(135deg, #0f172a 0%, #1d4ed8 55%, #7c3aed 100%)",
+          boxShadow:
+            "0 20px 50px rgba(15,23,42,0.18)",
         }}
       >
-        <Box>
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: 800,
-            }}
-          >
-            My Properties
-          </Typography>
-
-          <Typography
-            color="text.secondary"
-            sx={{
-              mt: 0.5,
-            }}
-          >
-            Manage your real estate properties
-          </Typography>
-        </Box>
+        {/* Decorative circles */}
 
         <Box
           sx={{
+            position: "absolute",
+            width: 220,
+            height: 220,
+            borderRadius: "50%",
+            background:
+              "rgba(255,255,255,0.07)",
+            right: -70,
+            top: -100,
+          }}
+        />
+
+        <Box
+          sx={{
+            position: "absolute",
+            width: 150,
+            height: 150,
+            borderRadius: "50%",
+            background:
+              "rgba(255,255,255,0.05)",
+            right: 130,
+            bottom: -100,
+          }}
+        />
+
+        <Box
+          sx={{
+            position: "relative",
+            zIndex: 1,
             display: "flex",
-            gap: 1,
-            flexWrap: "wrap",
+            justifyContent:
+              "space-between",
+            alignItems: {
+              xs: "flex-start",
+              md: "center",
+            },
+            flexDirection: {
+              xs: "column",
+              md: "row",
+            },
+            gap: 3,
           }}
         >
-          <Tooltip title="Refresh">
-            <IconButton
-              onClick={
-                loadProperties
-              }
-              disabled={loading}
+          <Box>
+            <Stack
+              direction="row"
+              spacing={1.5}
+              alignItems="center"
+              sx={{ mb: 1 }}
             >
-              <Refresh />
-            </IconButton>
-          </Tooltip>
+              <Avatar
+                sx={{
+                  width: 48,
+                  height: 48,
+                  background:
+                    "rgba(255,255,255,0.15)",
+                  backdropFilter:
+                    "blur(10px)",
+                }}
+              >
+                <HomeWork />
+              </Avatar>
 
-          <Button
-            variant="contained"
-            startIcon={<AddHome />}
-            onClick={() =>
-              navigate(
-                "/owner/properties/create"
-              )
-            }
+              <Box>
+                <Typography
+                  variant="overline"
+                  sx={{
+                    opacity: 0.75,
+                    letterSpacing: 2,
+                  }}
+                >
+                  OWNER PORTFOLIO
+                </Typography>
+
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 900,
+                    lineHeight: 1.15,
+                  }}
+                >
+                  My Properties
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Typography
+              sx={{
+                maxWidth: 620,
+                color:
+                  "rgba(255,255,255,0.78)",
+                mt: 1.5,
+              }}
+            >
+              Manage, monitor and showcase
+              all your real estate properties
+              from one powerful workspace.
+            </Typography>
+          </Box>
+
+          <Stack
+            direction={{
+              xs: "column",
+              sm: "row",
+            }}
+            spacing={1.5}
+            sx={{
+              width: {
+                xs: "100%",
+                md: "auto",
+              },
+            }}
           >
-            Add Property
-          </Button>
+            <Button
+              variant="outlined"
+              startIcon={<Refresh />}
+              onClick={loadProperties}
+              disabled={loading}
+              sx={{
+                color: "white",
+                borderColor:
+                  "rgba(255,255,255,0.35)",
+                borderRadius: 2.5,
+                px: 2.5,
+                py: 1.2,
+                fontWeight: 700,
+                "&:hover": {
+                  borderColor: "white",
+                  background:
+                    "rgba(255,255,255,0.08)",
+                },
+              }}
+            >
+              Refresh
+            </Button>
+
+            <Button
+              variant="contained"
+              startIcon={<AddHome />}
+              onClick={() =>
+                navigate(
+                  "/owner/properties/create"
+                )
+              }
+              sx={{
+                px: 2.5,
+                py: 1.2,
+                borderRadius: 2.5,
+                fontWeight: 800,
+                background: "white",
+                color: "#1d4ed8",
+                boxShadow:
+                  "0 10px 25px rgba(0,0,0,0.15)",
+                "&:hover": {
+                  background: "#f8fafc",
+                  transform:
+                    "translateY(-2px)",
+                },
+              }}
+            >
+              Add Property
+            </Button>
+          </Stack>
         </Box>
-      </Box>
+      </Paper>
 
       {/* =================================================
           ERROR
@@ -820,8 +1025,11 @@ function OwnerProperties() {
       {error && (
         <Alert
           severity="error"
+          variant="filled"
+          onClose={() => setError("")}
           sx={{
             mb: 3,
+            borderRadius: 3,
           }}
         >
           {error}
@@ -829,20 +1037,327 @@ function OwnerProperties() {
       )}
 
       {/* =================================================
+          STATISTICS
+      ================================================= */}
+
+      <Grid
+        container
+        spacing={2}
+        sx={{ mb: 3 }}
+      >
+        {/* TOTAL */}
+
+        <Grid
+          size={{
+            xs: 12,
+            sm: 6,
+            md: 3,
+          }}
+        >
+          <Card
+            elevation={0}
+            sx={{
+              height: "100%",
+              borderRadius: 3,
+              border:
+                "1px solid rgba(148,163,184,0.18)",
+              background:
+                "rgba(255,255,255,0.85)",
+              backdropFilter:
+                "blur(12px)",
+              transition: "0.3s",
+              "&:hover": {
+                transform:
+                  "translateY(-4px)",
+                boxShadow:
+                  "0 15px 35px rgba(15,23,42,0.10)",
+              },
+            }}
+          >
+            <CardContent>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Box>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    fontWeight={600}
+                  >
+                    Total Properties
+                  </Typography>
+
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      mt: 0.5,
+                      fontWeight: 900,
+                    }}
+                  >
+                    {totalProperties}
+                  </Typography>
+                </Box>
+
+                <Avatar
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    bgcolor: "#dbeafe",
+                    color: "#2563eb",
+                  }}
+                >
+                  <Inventory2 />
+                </Avatar>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* AVAILABLE */}
+
+        <Grid
+          size={{
+            xs: 12,
+            sm: 6,
+            md: 3,
+          }}
+        >
+          <Card
+            elevation={0}
+            sx={{
+              height: "100%",
+              borderRadius: 3,
+              border:
+                "1px solid rgba(148,163,184,0.18)",
+              background:
+                "rgba(255,255,255,0.85)",
+              backdropFilter:
+                "blur(12px)",
+              transition: "0.3s",
+              "&:hover": {
+                transform:
+                  "translateY(-4px)",
+                boxShadow:
+                  "0 15px 35px rgba(22,163,74,0.12)",
+              },
+            }}
+          >
+            <CardContent>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Box>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    fontWeight={600}
+                  >
+                    Available
+                  </Typography>
+
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      mt: 0.5,
+                      fontWeight: 900,
+                      color: "#16a34a",
+                    }}
+                  >
+                    {availableProperties}
+                  </Typography>
+                </Box>
+
+                <Avatar
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    bgcolor: "#dcfce7",
+                    color: "#16a34a",
+                  }}
+                >
+                  <CheckCircle />
+                </Avatar>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* PENDING */}
+
+        <Grid
+          size={{
+            xs: 12,
+            sm: 6,
+            md: 3,
+          }}
+        >
+          <Card
+            elevation={0}
+            sx={{
+              height: "100%",
+              borderRadius: 3,
+              border:
+                "1px solid rgba(148,163,184,0.18)",
+              background:
+                "rgba(255,255,255,0.85)",
+              backdropFilter:
+                "blur(12px)",
+              transition: "0.3s",
+              "&:hover": {
+                transform:
+                  "translateY(-4px)",
+                boxShadow:
+                  "0 15px 35px rgba(234,179,8,0.12)",
+              },
+            }}
+          >
+            <CardContent>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Box>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    fontWeight={600}
+                  >
+                    Pending Approval
+                  </Typography>
+
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      mt: 0.5,
+                      fontWeight: 900,
+                      color: "#d97706",
+                    }}
+                  >
+                    {pendingProperties}
+                  </Typography>
+                </Box>
+
+                <Avatar
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    bgcolor: "#fef3c7",
+                    color: "#d97706",
+                  }}
+                >
+                  <PendingActions />
+                </Avatar>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* SOLD */}
+
+        <Grid
+          size={{
+            xs: 12,
+            sm: 6,
+            md: 3,
+          }}
+        >
+          <Card
+            elevation={0}
+            sx={{
+              height: "100%",
+              borderRadius: 3,
+              border:
+                "1px solid rgba(148,163,184,0.18)",
+              background:
+                "rgba(255,255,255,0.85)",
+              backdropFilter:
+                "blur(12px)",
+              transition: "0.3s",
+              "&:hover": {
+                transform:
+                  "translateY(-4px)",
+                boxShadow:
+                  "0 15px 35px rgba(124,58,237,0.12)",
+              },
+            }}
+          >
+            <CardContent>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Box>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    fontWeight={600}
+                  >
+                    Sold Properties
+                  </Typography>
+
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      mt: 0.5,
+                      fontWeight: 900,
+                      color: "#7c3aed",
+                    }}
+                  >
+                    {soldProperties}
+                  </Typography>
+                </Box>
+
+                <Avatar
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    bgcolor: "#ede9fe",
+                    color: "#7c3aed",
+                  }}
+                >
+                  <TrendingUp />
+                </Avatar>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* =================================================
           SEARCH + FILTER
       ================================================= */}
 
       <Card
-        elevation={2}
+        elevation={0}
         sx={{
           borderRadius: 3,
-          mb: 4,
+          mb: 3,
+          border:
+            "1px solid rgba(148,163,184,0.18)",
+          background:
+            "rgba(255,255,255,0.9)",
+          backdropFilter:
+            "blur(12px)",
         }}
       >
-        <CardContent>
+        <CardContent
+          sx={{
+            p: {
+              xs: 2,
+              md: 2.5,
+            },
+          }}
+        >
           <Grid
             container
             spacing={2}
+            alignItems="center"
           >
             <Grid
               size={{
@@ -853,13 +1368,41 @@ function OwnerProperties() {
               <TextField
                 fullWidth
                 label="Search Properties"
-                placeholder="Search by title, city, state or type..."
+                placeholder="Search by title, city, state or property type..."
                 value={search}
                 onChange={(event) =>
                   setSearch(
                     event.target.value
                   )
                 }
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search color="action" />
+                    </InputAdornment>
+                  ),
+                  endAdornment:
+                    search && (
+                      <InputAdornment position="end">
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            setSearch("")
+                          }
+                        >
+                          <Close fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root":
+                    {
+                      borderRadius: 2.5,
+                      background:
+                        "#f8fafc",
+                    },
+                }}
               />
             </Grid>
 
@@ -879,6 +1422,14 @@ function OwnerProperties() {
                     event.target.value
                   )
                 }
+                sx={{
+                  "& .MuiOutlinedInput-root":
+                    {
+                      borderRadius: 2.5,
+                      background:
+                        "#f8fafc",
+                    },
+                }}
               >
                 <MenuItem value="ALL">
                   All Statuses
@@ -914,7 +1465,7 @@ function OwnerProperties() {
       </Card>
 
       {/* =================================================
-          SUMMARY
+          SUMMARY BAR
       ================================================= */}
 
       <Box
@@ -922,25 +1473,56 @@ function OwnerProperties() {
           mb: 3,
           display: "flex",
           alignItems: "center",
+          justifyContent:
+            "space-between",
           gap: 2,
           flexWrap: "wrap",
         }}
       >
-        <Chip
-          icon={<HomeWork />}
-          label={`${filteredProperties.length} Properties`}
-          variant="outlined"
-        />
-
-        {statusFilter !== "ALL" && (
+        <Stack
+          direction="row"
+          spacing={1}
+          flexWrap="wrap"
+          useFlexGap
+        >
           <Chip
-            label={getStatusLabel(
-              statusFilter
-            )}
-            color={getStatusColor(
-              statusFilter
-            )}
+            icon={<HomeWork />}
+            label={`${filteredProperties.length} Properties`}
+            variant="outlined"
+            sx={{
+              borderRadius: 2,
+              fontWeight: 700,
+              background:
+                "rgba(255,255,255,0.7)",
+            }}
           />
+
+          {statusFilter !== "ALL" && (
+            <Chip
+              label={getStatusLabel(
+                statusFilter
+              )}
+              color={getStatusColor(
+                statusFilter
+              )}
+              sx={{
+                borderRadius: 2,
+                fontWeight: 700,
+              }}
+            />
+          )}
+        </Stack>
+
+        {search && (
+          <Typography
+            variant="body2"
+            color="text.secondary"
+          >
+            Searching for{" "}
+            <strong>
+              "{search}"
+            </strong>
+          </Typography>
         )}
       </Box>
 
@@ -950,26 +1532,45 @@ function OwnerProperties() {
 
       {filteredProperties.length === 0 ? (
         <Card
-          elevation={2}
+          elevation={0}
           sx={{
-            borderRadius: 3,
+            borderRadius: 4,
             textAlign: "center",
-            py: 8,
+            py: 9,
+            px: 2,
+            border:
+              "1px solid rgba(148,163,184,0.18)",
+            background:
+              "rgba(255,255,255,0.85)",
           }}
         >
           <CardContent>
-            <HomeWork
+            <Box
               sx={{
-                fontSize: 70,
-                color: "text.secondary",
-                mb: 2,
+                width: 100,
+                height: 100,
+                mx: "auto",
+                mb: 3,
+                borderRadius: "30px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background:
+                  "linear-gradient(135deg, #dbeafe, #ede9fe)",
               }}
-            />
+            >
+              <HomeWork
+                sx={{
+                  fontSize: 52,
+                  color: "#4f46e5",
+                }}
+              />
+            </Box>
 
             <Typography
-              variant="h6"
+              variant="h5"
               sx={{
-                fontWeight: 700,
+                fontWeight: 900,
               }}
             >
               No properties found
@@ -980,24 +1581,51 @@ function OwnerProperties() {
               sx={{
                 mt: 1,
                 mb: 3,
+                maxWidth: 520,
+                mx: "auto",
               }}
             >
               {properties.length === 0
-                ? "You have not added any properties yet."
-                : "Try changing your search or status filter."}
+                ? "You have not added any properties yet. Start building your real estate portfolio today."
+                : "No properties match your current search or status filter. Try changing your filters."}
             </Typography>
 
-            {properties.length === 0 && (
+            {properties.length === 0 ? (
               <Button
                 variant="contained"
+                size="large"
                 startIcon={<AddHome />}
                 onClick={() =>
                   navigate(
                     "/owner/properties/create"
                   )
                 }
+                sx={{
+                  borderRadius: 2.5,
+                  px: 3,
+                  py: 1.3,
+                  fontWeight: 800,
+                  background:
+                    "linear-gradient(135deg, #2563eb, #7c3aed)",
+                  boxShadow:
+                    "0 10px 25px rgba(37,99,235,0.25)",
+                }}
               >
                 Add Your First Property
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setSearch("");
+                  setStatusFilter("ALL");
+                }}
+                sx={{
+                  borderRadius: 2.5,
+                  fontWeight: 700,
+                }}
+              >
+                Clear Filters
               </Button>
             )}
           </CardContent>
@@ -1068,19 +1696,28 @@ function OwnerProperties() {
                   key={property.id}
                 >
                   <Card
-                    elevation={3}
+                    elevation={0}
                     sx={{
                       height: "100%",
                       display: "flex",
-                      flexDirection: "column",
-                      borderRadius: 3,
+                      flexDirection:
+                        "column",
+                      borderRadius: 4,
                       overflow: "hidden",
-                      transition: "0.3s",
+                      border:
+                        "1px solid rgba(148,163,184,0.18)",
+                      background:
+                        "rgba(255,255,255,0.95)",
+                      boxShadow:
+                        "0 10px 30px rgba(15,23,42,0.07)",
+                      transition:
+                        "all 0.35s ease",
 
                       "&:hover": {
                         transform:
-                          "translateY(-5px)",
-                        boxShadow: 6,
+                          "translateY(-8px)",
+                        boxShadow:
+                          "0 24px 55px rgba(15,23,42,0.15)",
                       },
                     }}
                   >
@@ -1088,80 +1725,97 @@ function OwnerProperties() {
                         IMAGE
                     ========================================= */}
 
-                    {image ? (
-                      <CardMedia
-                        component="img"
-                        height="210"
-                        image={image}
-                        alt={propertyTitle}
-                        onError={(
-                          event
-                        ) => {
-                          console.error(
-                            "IMAGE LOAD FAILED:",
-                            image
-                          );
-
-                          event.currentTarget.style.display =
-                            "none";
-                        }}
-                        sx={{
-                          objectFit: "cover",
-                        }}
-                      />
-                    ) : (
-                      <Box
-                        sx={{
-                          height: 210,
-                          display: "flex",
-                          alignItems:
-                            "center",
-                          justifyContent:
-                            "center",
-                          backgroundColor:
-                            "action.hover",
-                        }}
-                      >
-                        <HomeWork
-                          sx={{
-                            fontSize: 70,
-                            color:
-                              "text.secondary",
-                          }}
-                        />
-                      </Box>
-                    )}
-
-                    {/* =========================================
-                        CONTENT
-                    ========================================= */}
-
-                    <CardContent
+                    <Box
                       sx={{
-                        flexGrow: 1,
+                        position:
+                          "relative",
+                        height: 230,
+                        overflow:
+                          "hidden",
+                        background:
+                          "linear-gradient(135deg, #e2e8f0, #f1f5f9)",
                       }}
                     >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent:
-                            "space-between",
-                          alignItems:
-                            "flex-start",
-                          gap: 1,
-                          mb: 1,
-                        }}
-                      >
-                        <Typography
-                          variant="h6"
+                      {image ? (
+                        <CardMedia
+                          component="img"
+                          height="230"
+                          image={image}
+                          alt={propertyTitle}
+                          onError={(
+                            event
+                          ) => {
+                            console.error(
+                              "IMAGE LOAD FAILED:",
+                              image
+                            );
+
+                            event.currentTarget.style.display =
+                              "none";
+                          }}
                           sx={{
-                            fontWeight: 700,
-                            lineHeight: 1.3,
+                            height: "100%",
+                            width: "100%",
+                            objectFit:
+                              "cover",
+                            transition:
+                              "transform 0.5s ease",
+
+                            "&:hover": {
+                              transform:
+                                "scale(1.06)",
+                            },
+                          }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            height: "100%",
+                            display:
+                              "flex",
+                            alignItems:
+                              "center",
+                            justifyContent:
+                              "center",
+                            background:
+                              "linear-gradient(135deg, #e0e7ff, #f1f5f9)",
                           }}
                         >
-                          {propertyTitle}
-                        </Typography>
+                          <HomeWork
+                            sx={{
+                              fontSize: 78,
+                              color:
+                                "#94a3b8",
+                            }}
+                          />
+                        </Box>
+                      )}
 
+                      {/* Image gradient */}
+
+                      <Box
+                        sx={{
+                          position:
+                            "absolute",
+                          inset: 0,
+                          background:
+                            "linear-gradient(to bottom, rgba(15,23,42,0.12), transparent 45%, rgba(15,23,42,0.55))",
+                          pointerEvents:
+                            "none",
+                        }}
+                      />
+
+                      {/* Status */}
+
+                      <Box
+                        sx={{
+                          position:
+                            "absolute",
+                          top: 14,
+                          left: 14,
+                          zIndex: 2,
+                        }}
+                      >
                         <Chip
                           size="small"
                           label={getStatusLabel(
@@ -1170,157 +1824,361 @@ function OwnerProperties() {
                           color={getStatusColor(
                             status
                           )}
+                          sx={{
+                            fontWeight: 800,
+                            borderRadius: 1.5,
+                            boxShadow:
+                              "0 5px 15px rgba(0,0,0,0.15)",
+                            backdropFilter:
+                              "blur(8px)",
+                          }}
                         />
                       </Box>
 
-                      {/* TYPE */}
-
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          mb: 1.5,
-                        }}
-                      >
-                        {propertyType}
-                      </Typography>
-
-                      {/* PRICE */}
+                      {/* Property Type */}
 
                       <Box
                         sx={{
-                          display: "flex",
-                          alignItems:
-                            "center",
-                          gap: 0.5,
-                          mb: 1,
+                          position:
+                            "absolute",
+                          bottom: 14,
+                          left: 14,
+                          zIndex: 2,
                         }}
                       >
-                        <AttachMoney
-                          fontSize="small"
-                        />
-
-                        <Typography
+                        <Chip
+                          icon={
+                            <Apartment
+                              sx={{
+                                fontSize:
+                                  17,
+                              }}
+                            />
+                          }
+                          label={
+                            propertyType
+                          }
+                          size="small"
                           sx={{
+                            color:
+                              "white",
+                            background:
+                              "rgba(15,23,42,0.72)",
+                            backdropFilter:
+                              "blur(8px)",
                             fontWeight: 700,
+                            border:
+                              "1px solid rgba(255,255,255,0.15)",
                           }}
-                        >
-                          {formatPrice(
-                            price
-                          )}
-                        </Typography>
+                        />
                       </Box>
+
+                      {/* Image count */}
+
+                      {Array.isArray(
+                        property?.images
+                      ) &&
+                        property.images
+                          .length >
+                          0 && (
+                          <Box
+                            sx={{
+                              position:
+                                "absolute",
+                              bottom: 14,
+                              right: 14,
+                              zIndex: 2,
+                            }}
+                          >
+                            <Chip
+                              label={`📷 ${property.images.length}`}
+                              size="small"
+                              sx={{
+                                color:
+                                  "white",
+                                background:
+                                  "rgba(15,23,42,0.72)",
+                                backdropFilter:
+                                  "blur(8px)",
+                                fontWeight: 700,
+                              }}
+                            />
+                          </Box>
+                        )}
+                    </Box>
+
+                    {/* =========================================
+                        CONTENT
+                    ========================================= */}
+
+                    <CardContent
+                      sx={{
+                        flexGrow: 1,
+                        p: 2.5,
+                      }}
+                    >
+                      {/* TITLE */}
+
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 900,
+                          lineHeight: 1.25,
+                          mb: 0.8,
+                          display:
+                            "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient:
+                            "vertical",
+                          overflow:
+                            "hidden",
+                        }}
+                      >
+                        {propertyTitle}
+                      </Typography>
 
                       {/* LOCATION */}
 
                       {location && (
                         <Box
                           sx={{
-                            display: "flex",
+                            display:
+                              "flex",
                             alignItems:
                               "center",
-                            gap: 0.5,
-                            mb: 1,
+                            gap: 0.6,
+                            mb: 2,
                           }}
                         >
                           <LocationOn
-                            fontSize="small"
-                            color="action"
+                            sx={{
+                              fontSize: 18,
+                              color:
+                                "#ef4444",
+                            }}
                           />
 
                           <Typography
                             variant="body2"
                             color="text.secondary"
+                            noWrap
                           >
                             {location}
                           </Typography>
                         </Box>
                       )}
 
-                      {/* BEDROOMS + AREA */}
+                      {/* PRICE */}
 
                       <Box
                         sx={{
-                          display: "flex",
-                          gap: 2,
-                          mt: 2,
-                          flexWrap: "wrap",
+                          display:
+                            "flex",
+                          alignItems:
+                            "center",
+                          justifyContent:
+                            "space-between",
+                          mb: 2,
+                          p: 1.5,
+                          borderRadius: 2.5,
+                          background:
+                            "linear-gradient(135deg, #eff6ff, #eef2ff)",
+                        }}
+                      >
+                        <Box>
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            fontWeight={600}
+                          >
+                            LISTING PRICE
+                          </Typography>
+
+                          <Typography
+                            sx={{
+                              fontWeight: 900,
+                              fontSize:
+                                "1.15rem",
+                              color:
+                                "#1d4ed8",
+                            }}
+                          >
+                            {formatPrice(
+                              price
+                            )}
+                          </Typography>
+                        </Box>
+
+                        <Avatar
+                          sx={{
+                            width: 38,
+                            height: 38,
+                            bgcolor:
+                              "#dbeafe",
+                            color:
+                              "#2563eb",
+                          }}
+                        >
+                          <AttachMoney
+                            fontSize="small"
+                          />
+                        </Avatar>
+                      </Box>
+
+                      {/* DETAILS */}
+
+                      <Box
+                        sx={{
+                          display:
+                            "grid",
+                          gridTemplateColumns:
+                            "1fr 1fr",
+                          gap: 1,
                         }}
                       >
                         {bedrooms !==
                           undefined &&
                           bedrooms !==
                             null && (
-                            <Box
+                            <Paper
+                              elevation={0}
                               sx={{
-                                display:
-                                  "flex",
-                                alignItems:
-                                  "center",
-                                gap: 0.5,
+                                p: 1.2,
+                                borderRadius:
+                                  2,
+                                background:
+                                  "#f8fafc",
+                                border:
+                                  "1px solid #e2e8f0",
                               }}
                             >
-                              <Bed fontSize="small" />
+                              <Stack
+                                direction="row"
+                                spacing={1}
+                                alignItems="center"
+                              >
+                                <Bed
+                                  sx={{
+                                    fontSize:
+                                      20,
+                                    color:
+                                      "#6366f1",
+                                  }}
+                                />
 
-                              <Typography variant="body2">
-                                {bedrooms} Beds
-                              </Typography>
-                            </Box>
+                                <Box>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                  >
+                                    Bedrooms
+                                  </Typography>
+
+                                  <Typography
+                                    variant="body2"
+                                    fontWeight={800}
+                                  >
+                                    {
+                                      bedrooms
+                                    }{" "}
+                                    Beds
+                                  </Typography>
+                                </Box>
+                              </Stack>
+                            </Paper>
                           )}
 
                         {area !==
                           undefined &&
                           area !==
                             null && (
-                            <Box
+                            <Paper
+                              elevation={0}
                               sx={{
-                                display:
-                                  "flex",
-                                alignItems:
-                                  "center",
-                                gap: 0.5,
+                                p: 1.2,
+                                borderRadius:
+                                  2,
+                                background:
+                                  "#f8fafc",
+                                border:
+                                  "1px solid #e2e8f0",
                               }}
                             >
-                              <SquareFoot fontSize="small" />
+                              <Stack
+                                direction="row"
+                                spacing={1}
+                                alignItems="center"
+                              >
+                                <SquareFoot
+                                  sx={{
+                                    fontSize:
+                                      20,
+                                    color:
+                                      "#0891b2",
+                                  }}
+                                />
 
-                              <Typography variant="body2">
-                                {area} sq.ft
-                              </Typography>
-                            </Box>
+                                <Box>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                  >
+                                    Area
+                                  </Typography>
+
+                                  <Typography
+                                    variant="body2"
+                                    fontWeight={800}
+                                  >
+                                    {area}{" "}
+                                    sq.ft
+                                  </Typography>
+                                </Box>
+                              </Stack>
+                            </Paper>
                           )}
                       </Box>
 
-                      {/* IMAGE COUNT */}
+                      {/* Bottom status information */}
 
-                      {Array.isArray(
-                        property?.images
-                      ) &&
-                        property.images
-                          .length > 0 && (
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{
-                              display:
-                                "block",
-                              mt: 2,
-                            }}
-                          >
-                            📷{" "}
-                            {
-                              property
-                                .images
-                                .length
-                            }{" "}
-                            image
-                            {property
-                              .images
-                              .length !==
-                            1
-                              ? "s"
-                              : ""}
-                          </Typography>
-                        )}
+                      <Box
+                        sx={{
+                          mt: 2,
+                          pt: 1.5,
+                          borderTop:
+                            "1px dashed #e2e8f0",
+                          display:
+                            "flex",
+                          alignItems:
+                            "center",
+                          justifyContent:
+                            "space-between",
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                        >
+                          Property ID
+                        </Typography>
+
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 700,
+                            color:
+                              "#475569",
+                            maxWidth:
+                              130,
+                            overflow:
+                              "hidden",
+                            textOverflow:
+                              "ellipsis",
+                          }}
+                        >
+                          {property.id}
+                        </Typography>
+                      </Box>
                     </CardContent>
 
                     <Divider />
@@ -1332,13 +2190,16 @@ function OwnerProperties() {
                     <Box
                       sx={{
                         p: 1.5,
-                        display: "flex",
+                        display:
+                          "flex",
                         gap: 1,
+                        background:
+                          "#fafafa",
                       }}
                     >
                       <Button
                         fullWidth
-                        variant="outlined"
+                        variant="contained"
                         startIcon={
                           <Visibility />
                         }
@@ -1347,6 +2208,21 @@ function OwnerProperties() {
                             `/owner/properties/${property.id}`
                           )
                         }
+                        sx={{
+                          borderRadius: 2,
+                          fontWeight: 800,
+                          py: 1.1,
+                          background:
+                            "linear-gradient(135deg, #2563eb, #4f46e5)",
+                          boxShadow:
+                            "none",
+                          "&:hover": {
+                            background:
+                              "linear-gradient(135deg, #1d4ed8, #4338ca)",
+                            boxShadow:
+                              "0 8px 18px rgba(37,99,235,0.22)",
+                          },
+                        }}
                       >
                         View
                       </Button>
@@ -1359,6 +2235,17 @@ function OwnerProperties() {
                               `/owner/properties/${property.id}/edit`
                             )
                           }
+                          sx={{
+                            border:
+                              "1px solid #dbeafe",
+                            borderRadius: 2,
+                            background:
+                              "#eff6ff",
+                            "&:hover": {
+                              background:
+                                "#dbeafe",
+                            },
+                          }}
                         >
                           <Edit />
                         </IconButton>
@@ -1372,6 +2259,17 @@ function OwnerProperties() {
                               property
                             )
                           }
+                          sx={{
+                            border:
+                              "1px solid #fecaca",
+                            borderRadius: 2,
+                            background:
+                              "#fef2f2",
+                            "&:hover": {
+                              background:
+                                "#fee2e2",
+                            },
+                          }}
                         >
                           <Delete />
                         </IconButton>
@@ -1394,15 +2292,70 @@ function OwnerProperties() {
         onClose={
           handleDeleteCancel
         }
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            minWidth: {
+              xs: "90%",
+              sm: 450,
+            },
+            overflow: "hidden",
+          },
+        }}
       >
-        <DialogTitle>
-          Delete Property?
-        </DialogTitle>
+        {/* Dialog Header */}
 
-        <DialogContent>
-          <DialogContentText>
+        <Box
+          sx={{
+            p: 2.5,
+            background:
+              "linear-gradient(135deg, #fff1f2, #fef2f2)",
+            borderBottom:
+              "1px solid #fee2e2",
+          }}
+        >
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+          >
+            <Avatar
+              sx={{
+                bgcolor: "#fee2e2",
+                color: "#dc2626",
+              }}
+            >
+              <Delete />
+            </Avatar>
+
+            <DialogTitle
+              sx={{
+                p: 0,
+                fontWeight: 900,
+              }}
+            >
+              Delete Property?
+            </DialogTitle>
+          </Stack>
+        </Box>
+
+        <DialogContent
+          sx={{
+            p: 3,
+          }}
+        >
+          <DialogContentText
+            sx={{
+              color: "#475569",
+              lineHeight: 1.7,
+            }}
+          >
             Are you sure you want to delete{" "}
-            <strong>
+            <strong
+              style={{
+                color: "#0f172a",
+              }}
+            >
               {selectedProperty?.title ||
                 selectedProperty?.propertyTitle ||
                 "this property"}
@@ -1413,16 +2366,77 @@ function OwnerProperties() {
             <br />
 
             This action will deactivate the
-            property from the system.
+            property from the system. The
+            property will no longer be
+            available as an active listing.
           </DialogContentText>
+
+          {selectedProperty && (
+            <Paper
+              elevation={0}
+              sx={{
+                mt: 2,
+                p: 1.5,
+                borderRadius: 2,
+                background:
+                  "#f8fafc",
+                border:
+                  "1px solid #e2e8f0",
+              }}
+            >
+              <Stack
+                direction="row"
+                spacing={1.5}
+                alignItems="center"
+              >
+                <HomeWork
+                  sx={{
+                    color:
+                      "#64748b",
+                  }}
+                />
+
+                <Box>
+                  <Typography
+                    variant="body2"
+                    fontWeight={800}
+                  >
+                    Property selected
+                  </Typography>
+
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    ID:{" "}
+                    {
+                      selectedProperty.id
+                    }
+                  </Typography>
+                </Box>
+              </Stack>
+            </Paper>
+          )}
         </DialogContent>
 
-        <DialogActions>
+        <DialogActions
+          sx={{
+            p: 2.5,
+            pt: 0.5,
+            gap: 1,
+          }}
+        >
           <Button
             onClick={
               handleDeleteCancel
             }
             disabled={deleteLoading}
+            variant="outlined"
+            sx={{
+              borderRadius: 2,
+              fontWeight: 700,
+              px: 2.5,
+            }}
           >
             Cancel
           </Button>
@@ -1434,12 +2448,33 @@ function OwnerProperties() {
               handleDeleteConfirm
             }
             disabled={deleteLoading}
+            startIcon={
+              deleteLoading ? (
+                <CircularProgress
+                  size={18}
+                  color="inherit"
+                />
+              ) : (
+                <Delete />
+              )
+            }
+            sx={{
+              borderRadius: 2,
+              fontWeight: 800,
+              px: 2.5,
+            }}
           >
             {deleteLoading
               ? "Deleting..."
-              : "Delete"}
+              : "Delete Property"}
           </Button>
         </DialogActions>
+
+        {deleteLoading && (
+          <LinearProgress
+            color="error"
+          />
+        )}
       </Dialog>
     </Box>
   );

@@ -10,8 +10,10 @@ import {
   ListItemText,
   IconButton,
   Badge,
+  Chip,
   useMediaQuery,
   useTheme,
+  Tooltip,
 } from "@mui/material";
 
 import {
@@ -26,6 +28,8 @@ import {
   Logout,
   Menu,
   QuestionAnswer,
+  Close,
+  AdminPanelSettings,
 } from "@mui/icons-material";
 
 import {
@@ -238,6 +242,65 @@ function OwnerLayout() {
 
 
   // =====================================================
+  // USER INITIALS
+  // =====================================================
+
+  const getUserInitials = () => {
+
+    const first =
+      user.firstName?.charAt(0) || "";
+
+    const last =
+      user.lastName?.charAt(0) || "";
+
+    const initials =
+      `${first}${last}`.toUpperCase();
+
+    return initials || "O";
+  };
+
+
+  // =====================================================
+  // PROFILE IMAGE
+  // =====================================================
+
+  const getProfileImageUrl = () => {
+
+    if (!user?.profileImage) {
+      return "";
+    }
+
+    const image =
+      user.profileImage;
+
+    if (
+      image.startsWith("http://") ||
+      image.startsWith("https://")
+    ) {
+      return image;
+    }
+
+    if (
+      image.startsWith("/uploads/")
+    ) {
+      return `https://realestate-pro-backend.onrender.com${image}`;
+    }
+
+    if (
+      image.startsWith("uploads/")
+    ) {
+      return `https://realestate-pro-backend.onrender.com/${image}`;
+    }
+
+    return `https://realestate-pro-backend.onrender.com/uploads/${image}`;
+  };
+
+
+  const profileImage =
+    getProfileImageUrl();
+
+
+  // =====================================================
   // SIDEBAR
   // =====================================================
 
@@ -245,51 +308,145 @@ function OwnerLayout() {
 
     <Box
       sx={{
-        width: 260,
+        width: 270,
         height: "100vh",
         position: "fixed",
         left: 0,
         top: 0,
+
         background:
-          "linear-gradient(180deg, #14213d 0%, #1d3557 100%)",
-        color: "white",
+          "linear-gradient(180deg, #071b34 0%, #0b2948 100%)",
+
+        color: "#fff",
+
         display: "flex",
         flexDirection: "column",
+
         zIndex: 1200,
+
         boxShadow:
-          "4px 0 20px rgba(0,0,0,0.12)",
+          "6px 0 24px rgba(0,0,0,0.18)",
+
+        overflow: "hidden",
       }}
     >
 
       {/* =================================================
-          LOGO
+          SIDEBAR HEADER
       ================================================= */}
 
       <Box
         sx={{
-          height: 80,
+          minHeight: 80,
+          px: 2.5,
+
           display: "flex",
           alignItems: "center",
-          px: 3,
+          justifyContent: "space-between",
         }}
       >
 
-        <HomeWork
+        <Box
           sx={{
-            fontSize: 34,
-            mr: 1.5,
-          }}
-        />
-
-        <Typography
-          variant="h6"
-          fontWeight="bold"
-          sx={{
-            letterSpacing: 0.5,
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
           }}
         >
-          RealEstate Pro
-        </Typography>
+
+          {/* LOGO */}
+
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+
+              borderRadius: 2.5,
+
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+
+              background:
+                "linear-gradient(135deg,#1976d2,#00bcd4)",
+
+              boxShadow:
+                "0 8px 20px rgba(0,0,0,.28)",
+
+              flexShrink: 0,
+            }}
+          >
+
+            <HomeWork
+              sx={{
+                fontSize: 25,
+              }}
+            />
+
+          </Box>
+
+
+          {/* BRAND */}
+
+          <Box>
+
+            <Typography
+              sx={{
+                fontWeight: 900,
+                fontSize: "1.15rem",
+                lineHeight: 1.2,
+                letterSpacing: 0.2,
+              }}
+            >
+
+              RealEstate
+
+              <Box
+                component="span"
+                sx={{
+                  color: "#4dd0e1",
+                }}
+              >
+                Pro
+              </Box>
+
+            </Typography>
+
+
+            <Typography
+              sx={{
+                color:
+                  "rgba(255,255,255,.62)",
+                fontSize: ".75rem",
+                mt: 0.3,
+              }}
+            >
+              Owner Portal
+            </Typography>
+
+          </Box>
+
+        </Box>
+
+
+        {/* MOBILE CLOSE */}
+
+        {isMobile && (
+
+          <IconButton
+            onClick={() =>
+              setMobileOpen(false)
+            }
+            sx={{
+              color: "#fff",
+            }}
+          >
+
+            <Close />
+
+          </IconButton>
+
+        )}
 
       </Box>
 
@@ -297,9 +454,175 @@ function OwnerLayout() {
       <Divider
         sx={{
           borderColor:
-            "rgba(255,255,255,0.12)",
+            "rgba(255,255,255,.12)",
         }}
       />
+
+
+      {/* =================================================
+          OWNER PROFILE
+      ================================================= */}
+
+      <Box
+        sx={{
+          px: 2,
+          py: 2,
+        }}
+      >
+
+        <Box
+          onClick={() =>
+            handleNavigation(
+              "/owner/profile"
+            )
+          }
+          sx={{
+            p: 1.5,
+
+            borderRadius: 3,
+
+            backgroundColor:
+              "rgba(255,255,255,.07)",
+
+            border:
+              "1px solid rgba(255,255,255,.08)",
+
+            display: "flex",
+            alignItems: "center",
+
+            gap: 1.5,
+
+            cursor: "pointer",
+
+            transition:
+              "all .25s ease",
+
+            "&:hover": {
+              backgroundColor:
+                "rgba(255,255,255,.12)",
+
+              transform:
+                "translateY(-1px)",
+            },
+          }}
+        >
+
+          {/* AVATAR */}
+
+          <Avatar
+            src={
+              profileImage ||
+              undefined
+            }
+            alt={fullName}
+            sx={{
+              width: 44,
+              height: 44,
+
+              background:
+                "linear-gradient(135deg,#1976d2,#00bcd4)",
+
+              fontWeight: 900,
+
+              boxShadow:
+                "0 5px 15px rgba(0,0,0,.25)",
+            }}
+          >
+
+            {!profileImage &&
+              getUserInitials()}
+
+          </Avatar>
+
+
+          {/* USER INFORMATION */}
+
+          <Box
+            sx={{
+              minWidth: 0,
+              flex: 1,
+            }}
+          >
+
+            <Typography
+              noWrap
+              sx={{
+                fontWeight: 800,
+                fontSize: ".9rem",
+                color: "#fff",
+              }}
+            >
+
+              {fullName}
+
+            </Typography>
+
+
+            <Chip
+              icon={
+                <AdminPanelSettings
+                  sx={{
+                    color:
+                      "#4dd0e1 !important",
+                    fontSize: 16,
+                  }}
+                />
+              }
+              label="OWNER"
+              size="small"
+              sx={{
+                mt: 0.5,
+
+                height: 23,
+
+                color: "#4dd0e1",
+
+                backgroundColor:
+                  "rgba(77,208,225,.12)",
+
+                border:
+                  "1px solid rgba(77,208,225,.18)",
+
+                fontWeight: 800,
+
+                fontSize: ".68rem",
+
+                "& .MuiChip-label": {
+                  px: 1,
+                },
+              }}
+            />
+
+          </Box>
+
+        </Box>
+
+      </Box>
+
+
+      {/* =================================================
+          MENU TITLE
+      ================================================= */}
+
+      <Typography
+        sx={{
+          px: 2.5,
+          mb: 1,
+
+          color:
+            "rgba(255,255,255,.45)",
+
+          fontSize: ".72rem",
+
+          fontWeight: 800,
+
+          letterSpacing: 1.2,
+        }}
+      >
+
+        OWNER MANAGEMENT
+
+      </Typography>
 
 
       {/* =================================================
@@ -309,9 +632,21 @@ function OwnerLayout() {
       <List
         sx={{
           px: 1.5,
-          py: 2,
+          py: 0,
+
           flex: 1,
+
           overflowY: "auto",
+
+          "&::-webkit-scrollbar": {
+            width: 5,
+          },
+
+          "&::-webkit-scrollbar-thumb": {
+            background:
+              "rgba(255,255,255,.18)",
+            borderRadius: 10,
+          },
         }}
       >
 
@@ -320,54 +655,111 @@ function OwnerLayout() {
           const active =
             location.pathname === item.path ||
             (
-              item.path !== "/owner/dashboard" &&
+              item.path !==
+                "/owner/dashboard" &&
               location.pathname.startsWith(
-                item.path
+                `${item.path}/`
               )
             );
+
+
+          const isNotification =
+            item.path ===
+            "/owner/notifications";
+
 
           return (
 
             <ListItemButton
               key={item.label}
               onClick={() =>
-                handleNavigation(item.path)
+                handleNavigation(
+                  item.path
+                )
               }
               sx={{
-                mb: 0.8,
-                borderRadius: 2,
                 minHeight: 48,
+
+                mb: 0.6,
+
+                px: 1.5,
+
+                borderRadius: 2.5,
+
+                color: active
+                  ? "#fff"
+                  : "rgba(255,255,255,.72)",
 
                 backgroundColor:
                   active
-                    ? "#3769e8"
+                    ? "rgba(25,118,210,.95)"
                     : "transparent",
 
+                boxShadow:
+                  active
+                    ? "0 8px 20px rgba(0,0,0,.18)"
+                    : "none",
+
+                transition:
+                  "all .2s ease",
+
                 "&:hover": {
+
                   backgroundColor:
                     active
-                      ? "#3769e8"
-                      : "rgba(255,255,255,0.08)",
+                      ? "rgba(25,118,210,1)"
+                      : "rgba(255,255,255,.08)",
+
+                  color: "#fff",
+
+                  transform:
+                    "translateX(2px)",
                 },
               }}
             >
 
+              {/* ICON */}
+
               <ListItemIcon
                 sx={{
                   minWidth: 42,
-                  color: "white",
+
+                  color: active
+                    ? "#fff"
+                    : "rgba(255,255,255,.65)",
+
+                  transition:
+                    "all .2s ease",
                 }}
               >
 
-                {item.badge > 0 ? (
+                {isNotification ? (
 
                   <Badge
                     badgeContent={
-                      item.badge
+                      notificationCount
                     }
                     color="error"
+                    max={999}
+                    showZero
+                    overlap="circular"
+                    sx={{
+                      "& .MuiBadge-badge":
+                        {
+                          fontWeight: 900,
+                          fontSize: ".68rem",
+                          minWidth: 20,
+                          height: 20,
+                          borderRadius: "10px",
+
+                          border:
+                            "2px solid #071b34",
+                        },
+                    }}
                   >
+
                     {item.icon}
+
                   </Badge>
 
                 ) : (
@@ -379,16 +771,57 @@ function OwnerLayout() {
               </ListItemIcon>
 
 
+              {/* LABEL */}
+
               <ListItemText
                 primary={item.label}
                 primaryTypographyProps={{
-                  fontSize: 15,
+                  fontSize: ".92rem",
+
                   fontWeight:
                     active
-                      ? 600
-                      : 400,
+                      ? 800
+                      : 600,
                 }}
               />
+
+
+              {/* NOTIFICATION COUNT */}
+
+              {isNotification &&
+                notificationCount > 0 && (
+
+                  <Chip
+                    label={
+                      notificationCount > 999
+                        ? "999+"
+                        : notificationCount
+                    }
+                    size="small"
+                    sx={{
+                      height: 23,
+
+                      minWidth: 27,
+
+                      color: "#fff",
+
+                      backgroundColor:
+                        "#d32f2f",
+
+                      fontWeight: 900,
+
+                      fontSize: ".68rem",
+
+                      "& .MuiChip-label": {
+                        px: 0.8,
+                      },
+
+                      boxShadow:
+                        "0 3px 8px rgba(211,47,47,.35)",
+                    }}
+                  />
+
+                )}
 
             </ListItemButton>
 
@@ -409,14 +842,40 @@ function OwnerLayout() {
         }}
       >
 
+        <Divider
+          sx={{
+            mb: 1.5,
+
+            borderColor:
+              "rgba(255,255,255,.12)",
+          }}
+        />
+
+
         <ListItemButton
           onClick={handleLogout}
           sx={{
-            borderRadius: 2,
+            minHeight: 48,
+
+            px: 1.5,
+
+            borderRadius: 2.5,
+
+            color:
+              "rgba(255,255,255,.72)",
+
+            transition:
+              "all .2s ease",
 
             "&:hover": {
+
               backgroundColor:
-                "rgba(255,255,255,0.08)",
+                "rgba(211,47,47,.15)",
+
+              color: "#ff8a80",
+
+              transform:
+                "translateX(2px)",
             },
           }}
         >
@@ -424,14 +883,20 @@ function OwnerLayout() {
           <ListItemIcon
             sx={{
               minWidth: 42,
-              color: "white",
+              color: "inherit",
             }}
           >
+
             <Logout />
+
           </ListItemIcon>
+
 
           <ListItemText
             primary="Logout"
+            primaryTypographyProps={{
+              fontWeight: 700,
+            }}
           />
 
         </ListItemButton>
@@ -450,7 +915,10 @@ function OwnerLayout() {
 
     <Box
       sx={{
+        display: "flex",
+
         minHeight: "100vh",
+
         backgroundColor: "#f5f7fb",
       }}
     >
@@ -459,7 +927,21 @@ function OwnerLayout() {
           DESKTOP SIDEBAR
       ================================================= */}
 
-      {!isMobile && sidebar}
+      {!isMobile && (
+
+        <Box
+          component="nav"
+          sx={{
+            width: 270,
+            flexShrink: 0,
+          }}
+        >
+
+          {sidebar}
+
+        </Box>
+
+      )}
 
 
       {/* =================================================
@@ -470,36 +952,119 @@ function OwnerLayout() {
 
         <Box
           sx={{
-            height: 64,
-            backgroundColor: "#14213d",
-            color: "white",
-            display: "flex",
-            alignItems: "center",
-            px: 2,
             position: "fixed",
+
             top: 0,
             left: 0,
             right: 0,
+
+            height: 68,
+
+            backgroundColor: "#fff",
+
+            color: "#172033",
+
+            display: "flex",
+
+            alignItems: "center",
+
+            px: 2,
+
             zIndex: 1200,
+
+            borderBottom:
+              "1px solid #e7ebf1",
+
+            boxShadow:
+              "0 2px 12px rgba(0,0,0,.05)",
           }}
         >
 
           <IconButton
-            color="inherit"
             onClick={() =>
-              setMobileOpen(!mobileOpen)
+              setMobileOpen(
+                !mobileOpen
+              )
             }
+            sx={{
+              mr: 1,
+
+              color: "#172033",
+            }}
           >
+
             <Menu />
+
           </IconButton>
 
 
-          <Typography
-            fontWeight="bold"
-            ml={1}
+          {/* MOBILE LOGO */}
+
+          <Box
+            sx={{
+              width: 38,
+              height: 38,
+
+              borderRadius: 2,
+
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+
+              background:
+                "linear-gradient(135deg,#1976d2,#00bcd4)",
+
+              color: "#fff",
+
+              mr: 1.2,
+            }}
           >
-            RealEstate Pro
-          </Typography>
+
+            <HomeWork
+              sx={{
+                fontSize: 22,
+              }}
+            />
+
+          </Box>
+
+
+          <Box>
+
+            <Typography
+              sx={{
+                fontWeight: 900,
+                fontSize: "1rem",
+                lineHeight: 1.1,
+              }}
+            >
+
+              RealEstate
+
+              <Box
+                component="span"
+                sx={{
+                  color: "#1976d2",
+                }}
+              >
+                Pro
+              </Box>
+
+            </Typography>
+
+
+            <Typography
+              sx={{
+                color: "#7b8494",
+                fontSize: ".68rem",
+              }}
+            >
+
+              Owner Portal
+
+            </Typography>
+
+          </Box>
 
         </Box>
 
@@ -515,10 +1080,15 @@ function OwnerLayout() {
         <Box
           sx={{
             position: "fixed",
-            top: 64,
+
+            top: 0,
             left: 0,
+
             bottom: 0,
+
             zIndex: 1199,
+
+            width: 270,
           }}
         >
 
@@ -534,18 +1104,16 @@ function OwnerLayout() {
       ================================================= */}
 
       <Box
+        component="main"
         sx={{
-          ml: {
-            xs: 0,
-            md: "260px",
+          flexGrow: 1,
+
+          width: {
+            xs: "100%",
+            md: "calc(100% - 270px)",
           },
 
-          pt: {
-            xs: "64px",
-            md: 0,
-          },
-
-          minHeight: "100vh",
+          minWidth: 0,
         }}
       >
 
@@ -556,72 +1124,254 @@ function OwnerLayout() {
         <Box
           sx={{
             height: 72,
-            backgroundColor: "white",
+
+            backgroundColor: "#fff",
+
             borderBottom:
-              "1px solid #e5e7eb",
+              "1px solid #e7ebf1",
 
             display: "flex",
+
             alignItems: "center",
-            justifyContent:
-              "flex-end",
 
             px: {
               xs: 2,
-              md: 4,
+              md: 3,
             },
 
-            gap: 2,
+            gap: 1.5,
+
+            position: "sticky",
+
+            top: 0,
+
+            zIndex: 1100,
           }}
         >
 
-          <IconButton
-            onClick={() =>
-              navigate(
-                "/owner/notifications"
-              )
+          {/* PAGE TITLE */}
+
+          <Box
+            sx={{
+              flexGrow: 1,
+            }}
+          >
+
+            <Typography
+              sx={{
+                fontWeight: 900,
+
+                fontSize: {
+                  xs: "1.1rem",
+                  md: "1.3rem",
+                },
+
+                color: "#172033",
+              }}
+            >
+
+              Owner Dashboard
+
+            </Typography>
+
+
+            <Typography
+              sx={{
+                display: {
+                  xs: "none",
+                  sm: "block",
+                },
+
+                fontSize: ".78rem",
+
+                color: "#7b8494",
+
+                mt: 0.2,
+              }}
+            >
+
+              Manage your properties,
+              bookings and customer activity
+
+            </Typography>
+
+          </Box>
+
+
+          {/* =================================================
+              NOTIFICATIONS
+          ================================================= */}
+
+          <Tooltip
+            title={
+              notificationCount > 0
+                ? `${notificationCount} unread notifications`
+                : "No unread notifications"
             }
           >
 
-            <Badge
-              badgeContent={
-                notificationCount
+            <IconButton
+              onClick={() =>
+                navigate(
+                  "/owner/notifications"
+                )
               }
-              color="error"
+              sx={{
+                width: 46,
+                height: 46,
+
+                color: "#526071",
+
+                borderRadius: 2.5,
+
+                "&:hover": {
+                  backgroundColor:
+                    "#f1f5f9",
+                },
+              }}
             >
 
-              <Notifications />
+              <Badge
+                badgeContent={
+                  notificationCount
+                }
+                color="error"
+                max={999}
+                showZero
+                overlap="circular"
+                sx={{
+                  "& .MuiBadge-badge":
+                    {
+                      fontWeight: 900,
 
-            </Badge>
+                      fontSize: ".68rem",
 
-          </IconButton>
+                      minWidth: 20,
+
+                      height: 20,
+
+                      borderRadius: "10px",
+
+                      border:
+                        "2px solid white",
+                    },
+                }}
+              >
+
+                <Notifications
+                  sx={{
+                    fontSize: 27,
+                  }}
+                />
+
+              </Badge>
+
+            </IconButton>
+
+          </Tooltip>
 
 
-          <Avatar
+          {/* =================================================
+              USER PROFILE
+          ================================================= */}
+
+          <Box
+            onClick={() =>
+              navigate(
+                "/owner/profile"
+              )
+            }
             sx={{
-              width: 40,
-              height: 40,
-              backgroundColor: "#3769e8",
+              display: "flex",
+
+              alignItems: "center",
+
+              gap: 1.2,
+
+              cursor: "pointer",
+
+              px: 1,
+
+              py: 0.6,
+
+              borderRadius: 2.5,
+
+              transition:
+                "all .2s ease",
+
+              "&:hover": {
+                backgroundColor:
+                  "#f5f7fb",
+              },
             }}
           >
-            {firstName.charAt(0).toUpperCase()}
-          </Avatar>
 
+            <Avatar
+              src={
+                profileImage ||
+                undefined
+              }
+              alt={fullName}
+              sx={{
+                width: 40,
+                height: 40,
 
-          <Box>
+                background:
+                  "linear-gradient(135deg,#1976d2,#00bcd4)",
 
-            <Typography
-              fontWeight="bold"
-              fontSize={14}
+                fontWeight: 900,
+
+                fontSize: ".9rem",
+              }}
             >
-              {fullName}
-            </Typography>
 
-            <Typography
-              color="text.secondary"
-              fontSize={12}
+              {!profileImage &&
+                getUserInitials()}
+
+            </Avatar>
+
+
+            <Box
+              sx={{
+                display: {
+                  xs: "none",
+                  sm: "block",
+                },
+              }}
             >
-              Owner
-            </Typography>
+
+              <Typography
+                sx={{
+                  fontWeight: 800,
+
+                  fontSize: ".84rem",
+
+                  lineHeight: 1.2,
+
+                  color: "#172033",
+                }}
+              >
+
+                {fullName}
+
+              </Typography>
+
+
+              <Typography
+                sx={{
+                  fontSize: ".72rem",
+
+                  color: "#7b8494",
+
+                  mt: 0.2,
+                }}
+              >
+
+                Owner
+
+              </Typography>
+
+            </Box>
 
           </Box>
 
@@ -636,8 +1386,13 @@ function OwnerLayout() {
           sx={{
             p: {
               xs: 2,
-              md: 4,
+              sm: 2.5,
+              md: 3,
+              lg: 4,
             },
+
+            minHeight:
+              "calc(100vh - 72px)",
           }}
         >
 

@@ -1,3 +1,4 @@
+
 import {
   Box,
   Typography,
@@ -11,20 +12,26 @@ import {
   Badge,
   useMediaQuery,
   useTheme,
+  Chip,
+  Tooltip,
+  AppBar,
+  Toolbar,
 } from "@mui/material";
 
 import {
-  Dashboard,
-  HomeWork,
-  CalendarMonth,
-  Notifications,
-  Favorite,
-  Payment,
-  Star,
-  ReportProblem,
-  Person,
-  Logout,
-  Menu,
+  Dashboard as DashboardIcon,
+  HomeWork as HomeWorkIcon,
+  CalendarMonth as BookingIcon,
+  Notifications as NotificationsIcon,
+  Favorite as FavoriteIcon,
+  Payment as PaymentIcon,
+  Star as StarIcon,
+  ReportProblem as ComplaintIcon,
+  Person as PersonIcon,
+  Logout as LogoutIcon,
+  Menu as MenuIcon,
+  Close as CloseIcon,
+  Person as CustomerIcon,
 } from "@mui/icons-material";
 
 import {
@@ -40,6 +47,17 @@ import {
 } from "../api";
 
 
+// =====================================================
+// CONSTANTS
+// =====================================================
+
+const DRAWER_WIDTH = 270;
+
+
+// =====================================================
+// CUSTOMER LAYOUT
+// =====================================================
+
 function CustomerLayout() {
 
   const navigate = useNavigate();
@@ -53,9 +71,9 @@ function CustomerLayout() {
   );
 
 
-  // =====================================================
+  // ===================================================
   // USER
-  // =====================================================
+  // ===================================================
 
   const savedUser =
     localStorage.getItem("user");
@@ -98,9 +116,9 @@ function CustomerLayout() {
     `${firstName} ${lastName}`.trim();
 
 
-  // =====================================================
+  // ===================================================
   // STATE
-  // =====================================================
+  // ===================================================
 
   const [mobileOpen, setMobileOpen] =
     useState(false);
@@ -109,9 +127,9 @@ function CustomerLayout() {
     useState(0);
 
 
-  // =====================================================
+  // ===================================================
   // LOAD NOTIFICATION COUNT
-  // =====================================================
+  // ===================================================
 
   useEffect(() => {
 
@@ -144,73 +162,73 @@ function CustomerLayout() {
   }, []);
 
 
-  // =====================================================
+  // ===================================================
   // MENU ITEMS
-  // =====================================================
+  // ===================================================
 
   const menuItems = [
 
     {
       label: "Dashboard",
-      icon: <Dashboard />,
+      icon: <DashboardIcon />,
       path: "/customer/dashboard",
     },
 
-     {
-    label: "My Profile",
-    icon: <Person />,
-    path: "/customer/profile",
-  },
+    {
+      label: "My Profile",
+      icon: <PersonIcon />,
+      path: "/customer/profile",
+    },
 
     {
       label: "Properties",
-      icon: <HomeWork />,
+      icon: <HomeWorkIcon />,
       path: "/customer/properties",
     },
 
     {
       label: "My Bookings",
-      icon: <CalendarMonth />,
+      icon: <BookingIcon />,
       path: "/customer/bookings",
     },
 
     {
       label: "Notifications",
-      icon: <Notifications />,
+      icon: <NotificationsIcon />,
       path: "/customer/notifications",
       badge: notificationCount,
     },
 
     {
       label: "Favourites",
-      icon: <Favorite />,
+      icon: <FavoriteIcon />,
       path: "/customer/favourites",
     },
 
     {
       label: "Payments",
-      icon: <Payment />,
+      icon: <PaymentIcon />,
       path: "/customer/payments",
     },
 
     {
       label: "Reviews",
-      icon: <Star />,
+      icon: <StarIcon />,
       path: "/customer/reviews",
     },
 
     {
       label: "Complaints",
-      icon: <ReportProblem />,
+      icon: <ComplaintIcon />,
       path: "/customer/complaints",
     },
 
   ];
 
 
-  // =====================================================
+  // ===================================================
   // NAVIGATION
-  // =====================================================
+  // ===================================================
 
   const handleNavigation = (path) => {
 
@@ -221,9 +239,9 @@ function CustomerLayout() {
   };
 
 
-  // =====================================================
+  // ===================================================
   // LOGOUT
-  // =====================================================
+  // ===================================================
 
   const handleLogout = () => {
 
@@ -236,59 +254,208 @@ function CustomerLayout() {
   };
 
 
-  // =====================================================
-  // SIDEBAR
-  // =====================================================
+  // ===================================================
+  // USER NAME
+  // ===================================================
+
+  const getUserName = () => {
+
+    return (
+      fullName ||
+      "Customer"
+    );
+
+  };
+
+
+  // ===================================================
+  // USER INITIALS
+  // ===================================================
+
+  const getUserInitials = () => {
+
+    const first =
+      user.firstName?.charAt(0) || "";
+
+    const last =
+      user.lastName?.charAt(0) || "";
+
+    const initials =
+      `${first}${last}`.toUpperCase();
+
+    return initials || "C";
+
+  };
+
+
+  // ===================================================
+  // PROFILE IMAGE URL
+  // ===================================================
+
+  const getProfileImageUrl = () => {
+
+    if (!user?.profileImage) {
+      return "";
+    }
+
+    const image =
+      user.profileImage;
+
+    if (
+      image.startsWith("http://") ||
+      image.startsWith("https://")
+    ) {
+      return image;
+    }
+
+    if (
+      image.startsWith("/uploads/")
+    ) {
+      return `https://realestate-pro-backend.onrender.com${image}`;
+    }
+
+    if (
+      image.startsWith("uploads/")
+    ) {
+      return `https://realestate-pro-backend.onrender.com/${image}`;
+    }
+
+    return `https://realestate-pro-backend.onrender.com/uploads/${image}`;
+
+  };
+
+
+  // ===================================================
+  // PROFILE IMAGE
+  // ===================================================
+
+  const profileImage =
+    getProfileImageUrl();
+
+
+  // ===================================================
+  // SIDEBAR CONTENT
+  // ===================================================
 
   const sidebar = (
 
     <Box
       sx={{
-        width: 260,
-        height: "100vh",
-        position: "fixed",
-        left: 0,
-        top: 0,
-        background:
-          "linear-gradient(180deg, #14213d 0%, #1d3557 100%)",
-        color: "white",
+        height: "100%",
         display: "flex",
         flexDirection: "column",
-        zIndex: 1200,
-        boxShadow:
-          "4px 0 20px rgba(0,0,0,0.12)",
+        background:
+          "linear-gradient(180deg, #071b34 0%, #0b2948 100%)",
+        color: "#fff",
       }}
     >
 
       {/* =================================================
-          LOGO
+          SIDEBAR HEADER
       ================================================= */}
 
       <Box
         sx={{
-          height: 80,
+          minHeight: 80,
+          px: 2.5,
           display: "flex",
           alignItems: "center",
-          px: 3,
+          justifyContent: "space-between",
         }}
       >
 
-        <HomeWork
+        <Box
           sx={{
-            fontSize: 34,
-            mr: 1.5,
-          }}
-        />
-
-        <Typography
-          variant="h6"
-          fontWeight="bold"
-          sx={{
-            letterSpacing: 0.5,
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
           }}
         >
-          RealEstate Pro
-        </Typography>
+
+          {/* LOGO */}
+
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: 2.5,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background:
+                "linear-gradient(135deg,#1976d2,#00bcd4)",
+              boxShadow:
+                "0 8px 20px rgba(0,0,0,.25)",
+            }}
+          >
+
+            <HomeWorkIcon />
+
+          </Box>
+
+
+          {/* TITLE */}
+
+          <Box>
+
+            <Typography
+              sx={{
+                fontWeight: 900,
+                fontSize: "1.15rem",
+                lineHeight: 1.2,
+              }}
+            >
+
+              RealEstate
+
+              <Box
+                component="span"
+                sx={{
+                  color: "#4dd0e1",
+                }}
+              >
+                Pro
+              </Box>
+
+            </Typography>
+
+
+            <Typography
+              sx={{
+                color:
+                  "rgba(255,255,255,.65)",
+                fontSize: ".75rem",
+                mt: 0.3,
+              }}
+            >
+
+              Customer Portal
+
+            </Typography>
+
+          </Box>
+
+        </Box>
+
+
+        {/* MOBILE CLOSE */}
+
+        {isMobile && (
+
+          <IconButton
+            onClick={() =>
+              setMobileOpen(false)
+            }
+            sx={{
+              color: "#fff",
+            }}
+          >
+
+            <CloseIcon />
+
+          </IconButton>
+
+        )}
 
       </Box>
 
@@ -296,9 +463,142 @@ function CustomerLayout() {
       <Divider
         sx={{
           borderColor:
-            "rgba(255,255,255,0.12)",
+            "rgba(255,255,255,.12)",
         }}
       />
+
+
+      {/* =================================================
+          CUSTOMER PROFILE
+      ================================================= */}
+
+      <Box
+        sx={{
+          px: 2,
+          py: 2,
+        }}
+      >
+
+        <Box
+          sx={{
+            p: 1.5,
+            borderRadius: 3,
+            backgroundColor:
+              "rgba(255,255,255,.07)",
+            border:
+              "1px solid rgba(255,255,255,.08)",
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            cursor: "pointer",
+            transition:
+              "all .2s ease",
+
+            "&:hover": {
+              backgroundColor:
+                "rgba(255,255,255,.11)",
+              transform:
+                "translateY(-1px)",
+            },
+          }}
+          onClick={() =>
+            navigate("/customer/profile")
+          }
+        >
+
+          {/* USER AVATAR */}
+
+          <Avatar
+            src={
+              profileImage ||
+              undefined
+            }
+            alt={getUserName()}
+            sx={{
+              width: 42,
+              height: 42,
+              background:
+                "linear-gradient(135deg,#1976d2,#00bcd4)",
+              fontWeight: 800,
+            }}
+          >
+
+            {!profileImage &&
+              getUserInitials()}
+
+          </Avatar>
+
+
+          {/* USER DETAILS */}
+
+          <Box
+            sx={{
+              minWidth: 0,
+            }}
+          >
+
+            <Typography
+              noWrap
+              sx={{
+                fontWeight: 800,
+                fontSize: ".9rem",
+              }}
+            >
+
+              {getUserName()}
+
+            </Typography>
+
+
+            <Chip
+              icon={
+                <CustomerIcon
+                  sx={{
+                    color:
+                      "#4dd0e1 !important",
+                    fontSize: 16,
+                  }}
+                />
+              }
+              label="CUSTOMER"
+              size="small"
+              sx={{
+                mt: 0.5,
+                height: 23,
+                color: "#4dd0e1",
+                backgroundColor:
+                  "rgba(77,208,225,.12)",
+                fontWeight: 800,
+                fontSize: ".7rem",
+              }}
+            />
+
+          </Box>
+
+        </Box>
+
+      </Box>
+
+
+      {/* =================================================
+          MENU TITLE
+      ================================================= */}
+
+      <Typography
+        sx={{
+          px: 2.5,
+          mb: 1,
+          color:
+            "rgba(255,255,255,.45)",
+          fontSize: ".72rem",
+          fontWeight: 800,
+          letterSpacing: 1.2,
+        }}
+      >
+
+        CUSTOMER PORTAL
+
+      </Typography>
 
 
       {/* =================================================
@@ -308,7 +608,6 @@ function CustomerLayout() {
       <List
         sx={{
           px: 1.5,
-          py: 2,
           flex: 1,
           overflowY: "auto",
         }}
@@ -319,11 +618,18 @@ function CustomerLayout() {
           const active =
             location.pathname === item.path ||
             (
-              item.path !== "/customer/dashboard" &&
+              item.path !==
+                "/customer/dashboard" &&
               location.pathname.startsWith(
                 item.path
               )
             );
+
+
+          const isNotificationItem =
+            item.path ===
+            "/customer/notifications";
+
 
           return (
 
@@ -333,40 +639,82 @@ function CustomerLayout() {
                 handleNavigation(item.path)
               }
               sx={{
-                mb: 0.8,
-                borderRadius: 2,
                 minHeight: 48,
+                mb: 0.6,
+                px: 1.5,
+                borderRadius: 2.5,
+
+                color: active
+                  ? "#fff"
+                  : "rgba(255,255,255,.72)",
 
                 backgroundColor:
                   active
-                    ? "#3769e8"
+                    ? "rgba(25,118,210,.95)"
                     : "transparent",
 
+                boxShadow:
+                  active
+                    ? "0 8px 20px rgba(0,0,0,.18)"
+                    : "none",
+
+                transition:
+                  "all .2s ease",
+
                 "&:hover": {
+
                   backgroundColor:
                     active
-                      ? "#3769e8"
-                      : "rgba(255,255,255,0.08)",
+                      ? "rgba(25,118,210,1)"
+                      : "rgba(255,255,255,.08)",
+
+                  color: "#fff",
+
+                  transform:
+                    "translateX(2px)",
+
                 },
               }}
             >
 
+              {/* ICON */}
+
               <ListItemIcon
                 sx={{
                   minWidth: 42,
-                  color: "white",
+                  color: active
+                    ? "#fff"
+                    : "rgba(255,255,255,.65)",
                 }}
               >
 
-                {item.badge > 0 ? (
+                {isNotificationItem ? (
 
                   <Badge
                     badgeContent={
-                      item.badge
+                      notificationCount
                     }
                     color="error"
+                    max={999}
+                    showZero
+                    overlap="circular"
+                    sx={{
+                      "& .MuiBadge-badge":
+                        {
+                          fontWeight: 900,
+                          fontSize: "0.7rem",
+                          minWidth: 20,
+                          height: 20,
+                          borderRadius:
+                            "10px",
+                          border:
+                            "2px solid #071b34",
+                        },
+                    }}
                   >
+
                     {item.icon}
+
                   </Badge>
 
                 ) : (
@@ -378,16 +726,43 @@ function CustomerLayout() {
               </ListItemIcon>
 
 
+              {/* LABEL */}
+
               <ListItemText
                 primary={item.label}
                 primaryTypographyProps={{
-                  fontSize: 15,
-                  fontWeight:
-                    active
-                      ? 600
-                      : 400,
+                  fontWeight: active
+                    ? 800
+                    : 600,
+                  fontSize: ".92rem",
                 }}
               />
+
+
+              {/* SIDEBAR COUNT */}
+
+              {isNotificationItem &&
+                notificationCount > 0 && (
+
+                  <Chip
+                    label={
+                      notificationCount > 999
+                        ? "999+"
+                        : notificationCount
+                    }
+                    size="small"
+                    sx={{
+                      height: 23,
+                      minWidth: 27,
+                      color: "#fff",
+                      backgroundColor:
+                        "#d32f2f",
+                      fontWeight: 900,
+                      fontSize: ".7rem",
+                    }}
+                  />
+
+                )}
 
             </ListItemButton>
 
@@ -399,7 +774,7 @@ function CustomerLayout() {
 
 
       {/* =================================================
-          LOGOUT
+          SIDEBAR FOOTER
       ================================================= */}
 
       <Box
@@ -408,14 +783,31 @@ function CustomerLayout() {
         }}
       >
 
+        <Divider
+          sx={{
+            mb: 1.5,
+            borderColor:
+              "rgba(255,255,255,.12)",
+          }}
+        />
+
+
         <ListItemButton
           onClick={handleLogout}
           sx={{
-            borderRadius: 2,
+            minHeight: 48,
+            px: 1.5,
+            borderRadius: 2.5,
+            color:
+              "rgba(255,255,255,.72)",
+
+            transition:
+              "all .2s ease",
 
             "&:hover": {
               backgroundColor:
-                "rgba(255,255,255,0.08)",
+                "rgba(211,47,47,.15)",
+              color: "#ff8a80",
             },
           }}
         >
@@ -423,14 +815,20 @@ function CustomerLayout() {
           <ListItemIcon
             sx={{
               minWidth: 42,
-              color: "white",
+              color: "inherit",
             }}
           >
-            <Logout />
+
+            <LogoutIcon />
+
           </ListItemIcon>
+
 
           <ListItemText
             primary="Logout"
+            primaryTypographyProps={{
+              fontWeight: 700,
+            }}
           />
 
         </ListItemButton>
@@ -441,190 +839,371 @@ function CustomerLayout() {
   );
 
 
-  // =====================================================
+  // ===================================================
   // RETURN
-  // =====================================================
+  // ===================================================
 
   return (
 
     <Box
       sx={{
+        display: "flex",
         minHeight: "100vh",
         backgroundColor: "#f5f7fb",
       }}
     >
 
       {/* =================================================
-          DESKTOP SIDEBAR
-      ================================================= */}
-
-      {!isMobile && sidebar}
-
-
-      {/* =================================================
-          MOBILE TOP BAR
-      ================================================= */}
-
-      {isMobile && (
-
-        <Box
-          sx={{
-            height: 64,
-            backgroundColor: "#14213d",
-            color: "white",
-            display: "flex",
-            alignItems: "center",
-            px: 2,
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1200,
-          }}
-        >
-
-          <IconButton
-            color="inherit"
-            onClick={() =>
-              setMobileOpen(!mobileOpen)
-            }
-          >
-            <Menu />
-          </IconButton>
-
-
-          <Typography
-            fontWeight="bold"
-            ml={1}
-          >
-            RealEstate Pro
-          </Typography>
-
-        </Box>
-
-      )}
-
-
-      {/* =================================================
-          MOBILE SIDEBAR
-      ================================================= */}
-
-      {isMobile && mobileOpen && (
-
-        <Box
-          sx={{
-            position: "fixed",
-            top: 64,
-            left: 0,
-            bottom: 0,
-            zIndex: 1199,
-          }}
-        >
-
-          {sidebar}
-
-        </Box>
-
-      )}
-
-
-      {/* =================================================
-          MAIN AREA
+          SIDEBAR
       ================================================= */}
 
       <Box
+        component="nav"
         sx={{
-          ml: {
-            xs: 0,
-            md: "260px",
+          width: {
+            md: DRAWER_WIDTH,
           },
-
-          pt: {
-            xs: "64px",
+          flexShrink: {
             md: 0,
           },
+        }}
+      >
 
-          minHeight: "100vh",
+        {/* MOBILE DRAWER */}
+
+        {isMobile ? (
+
+          <Box
+            sx={{
+              "& .MuiDrawer-paper": {
+                width: DRAWER_WIDTH,
+                boxSizing: "border-box",
+                border: "none",
+              },
+            }}
+          >
+
+            {mobileOpen && (
+
+              <Box
+                sx={{
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  width: DRAWER_WIDTH,
+                  zIndex: 1300,
+                  boxShadow:
+                    "8px 0 30px rgba(0,0,0,.25)",
+                }}
+              >
+
+                {sidebar}
+
+              </Box>
+
+            )}
+
+          </Box>
+
+        ) : (
+
+          /* DESKTOP DRAWER */
+
+          <Box
+            sx={{
+              display: {
+                xs: "none",
+                md: "block",
+              },
+              width: DRAWER_WIDTH,
+            }}
+          >
+
+            <Box
+              sx={{
+                position: "fixed",
+                width: DRAWER_WIDTH,
+                height: "100vh",
+                top: 0,
+                left: 0,
+                zIndex: 1200,
+                boxShadow:
+                  "4px 0 20px rgba(0,0,0,.12)",
+              }}
+            >
+
+              {sidebar}
+
+            </Box>
+
+          </Box>
+
+        )}
+
+      </Box>
+
+
+      {/* =================================================
+          MAIN CONTENT
+      ================================================= */}
+
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          width: {
+            xs: "100%",
+            md:
+              `calc(100% - ${DRAWER_WIDTH}px)`,
+          },
+          minWidth: 0,
         }}
       >
 
         {/* =================================================
-            TOP HEADER
+            TOP BAR
         ================================================= */}
 
-        <Box
+        <AppBar
+          position="sticky"
+          elevation={0}
           sx={{
-            height: 72,
-            backgroundColor: "white",
+            backgroundColor: "#fff",
+            color: "#172033",
             borderBottom:
-              "1px solid #e5e7eb",
-
-            display: "flex",
-            alignItems: "center",
-            justifyContent:
-              "flex-end",
-
-            px: {
-              xs: 2,
-              md: 4,
-            },
-
-            gap: 2,
+              "1px solid #e7ebf1",
           }}
         >
 
-          <IconButton
-            onClick={() =>
-              navigate(
-                "/customer/notifications"
-              )
-            }
-          >
-
-            <Badge
-              badgeContent={
-                notificationCount
-              }
-              color="error"
-            >
-
-              <Notifications />
-
-            </Badge>
-
-          </IconButton>
-
-
-          <Avatar
+          <Toolbar
             sx={{
-              width: 40,
-              height: 40,
-              backgroundColor: "#3769e8",
+              minHeight: {
+                xs: 68,
+                md: 72,
+              },
+              px: {
+                xs: 2,
+                md: 3,
+              },
             }}
           >
-            {firstName.charAt(0).toUpperCase()}
-          </Avatar>
+
+            {/* MOBILE MENU */}
+
+            {isMobile && (
+
+              <IconButton
+                edge="start"
+                onClick={() =>
+                  setMobileOpen(true)
+                }
+                sx={{
+                  mr: 1.5,
+                  color: "#172033",
+                }}
+              >
+
+                <MenuIcon />
+
+              </IconButton>
+
+            )}
 
 
-          <Box>
+            {/* PAGE TITLE */}
 
-            <Typography
-              fontWeight="bold"
-              fontSize={14}
+            <Box
+              sx={{
+                flexGrow: 1,
+              }}
             >
-              {fullName}
-            </Typography>
 
-            <Typography
-              color="text.secondary"
-              fontSize={12}
+              <Typography
+                sx={{
+                  fontWeight: 900,
+                  fontSize: {
+                    xs: "1.1rem",
+                    md: "1.35rem",
+                  },
+                  color: "#172033",
+                }}
+              >
+
+                Customer Dashboard
+
+              </Typography>
+
+
+              <Typography
+                sx={{
+                  display: {
+                    xs: "none",
+                    sm: "block",
+                  },
+                  fontSize: ".8rem",
+                  color: "#7b8494",
+                  mt: 0.2,
+                }}
+              >
+
+                Explore properties, manage bookings
+                and track your real-estate activity
+
+              </Typography>
+
+            </Box>
+
+
+            {/* =================================================
+                TOP BAR NOTIFICATION
+            ================================================= */}
+
+            <Tooltip
+              title={
+                notificationCount > 0
+                  ? `${notificationCount} unread notifications`
+                  : "No unread notifications"
+              }
             >
-              Customer
-            </Typography>
 
-          </Box>
+              <IconButton
+                onClick={() =>
+                  navigate(
+                    "/customer/notifications"
+                  )
+                }
+                sx={{
+                  mr: 1,
+                  color: "#526071",
+                  width: 48,
+                  height: 48,
+                }}
+              >
 
-        </Box>
+                <Badge
+                  badgeContent={
+                    notificationCount
+                  }
+                  color="error"
+                  max={999}
+                  showZero
+                  overlap="circular"
+                  sx={{
+                    "& .MuiBadge-badge":
+                      {
+                        fontWeight: 900,
+                        fontSize: "0.72rem",
+                        minWidth: 21,
+                        height: 21,
+                        borderRadius:
+                          "11px",
+                        border:
+                          "2px solid white",
+                      },
+                  }}
+                >
+
+                  <NotificationsIcon
+                    sx={{
+                      fontSize: 28,
+                    }}
+                  />
+
+                </Badge>
+
+              </IconButton>
+
+            </Tooltip>
+
+
+            {/* =================================================
+                USER
+            ================================================= */}
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.2,
+                cursor: "pointer",
+                borderRadius: 2.5,
+                px: 1,
+                py: 0.5,
+
+                "&:hover": {
+                  backgroundColor:
+                    "#f5f7fb",
+                },
+              }}
+              onClick={() =>
+                navigate("/customer/profile")
+              }
+            >
+
+              <Avatar
+                src={
+                  profileImage ||
+                  undefined
+                }
+                alt={getUserName()}
+                sx={{
+                  width: 38,
+                  height: 38,
+                  background:
+                    "linear-gradient(135deg,#1976d2,#00bcd4)",
+                  fontWeight: 800,
+                  fontSize: ".9rem",
+                }}
+              >
+
+                {!profileImage &&
+                  getUserInitials()}
+
+              </Avatar>
+
+
+              <Box
+                sx={{
+                  display: {
+                    xs: "none",
+                    sm: "block",
+                  },
+                }}
+              >
+
+                <Typography
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: ".85rem",
+                    lineHeight: 1.2,
+                  }}
+                >
+
+                  {getUserName()}
+
+                </Typography>
+
+
+                <Typography
+                  sx={{
+                    fontSize: ".72rem",
+                    color: "#7b8494",
+                    mt: 0.2,
+                  }}
+                >
+
+                  Customer
+
+                </Typography>
+
+              </Box>
+
+            </Box>
+
+          </Toolbar>
+
+        </AppBar>
 
 
         {/* =================================================
@@ -635,7 +1214,9 @@ function CustomerLayout() {
           sx={{
             p: {
               xs: 2,
-              md: 4,
+              sm: 2.5,
+              md: 3,
+              lg: 4,
             },
           }}
         >
