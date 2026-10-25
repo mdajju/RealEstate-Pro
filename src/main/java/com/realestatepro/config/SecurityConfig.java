@@ -1,8 +1,12 @@
 
 package com.realestatepro.config;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import org.springframework.http.HttpMethod;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -12,6 +16,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.realestatepro.security.JwtAuthenticationFilter;
 
@@ -29,14 +37,22 @@ public class SecurityConfig {
             HttpSecurity http) throws Exception {
 
         http
+            // CORS
+            .cors(cors ->
+                cors.configurationSource(corsConfigurationSource())
+            )
+
+            // CSRF
             .csrf(csrf -> csrf.disable())
 
+            // Stateless session
             .sessionManagement(session ->
                 session.sessionCreationPolicy(
                     SessionCreationPolicy.STATELESS
                 )
             )
 
+            // Authorization
             .authorizeHttpRequests(auth -> auth
 
                 // Public login and registration
@@ -47,7 +63,7 @@ public class SecurityConfig {
 
                 // Public property browsing
                 .requestMatchers(
-                    org.springframework.http.HttpMethod.GET,
+                    HttpMethod.GET,
                     "/api/properties",
                     "/api/properties/**",
                     "/api/property-types",
@@ -58,6 +74,13 @@ public class SecurityConfig {
                     "/api/cities/**",
                     "/api/property-images/property/**",
                     "/api/reviews/property/**"
+                ).permitAll()
+
+                // Public image files
+                .requestMatchers(
+                    "/uploads/**",
+                    "/images/**",
+                    "/image/**"
                 ).permitAll()
 
                 // Public Swagger documentation
@@ -72,6 +95,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
 
+            // JWT authentication filter
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
@@ -80,6 +104,48 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // CORS configuration
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(
+            List.of(
+                "http://localhost:5173",
+                "https://realestate-pro-frontend.onrender.com"
+            )
+        );
+
+        configuration.setAllowedMethods(
+            List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "PATCH",
+                "OPTIONS"
+            )
+        );
+
+        configuration.setAllowedHeaders(
+            List.of("*")
+        );
+
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source =
+            new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration(
+            "/**",
+            configuration
+        );
+
+        return source;
+    }
+
+    // Authentication manager
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration configuration)
