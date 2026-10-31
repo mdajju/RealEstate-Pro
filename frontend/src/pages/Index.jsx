@@ -308,6 +308,11 @@ const handleImageError = (event, index = 0) => {
 // PRICE FORMATTER
 // =====================================================
 
+
+// =====================================================
+// PRICE FORMATTER
+// =====================================================
+
 const formatPrice = (price) => {
   if (
     price === null ||
@@ -317,27 +322,39 @@ const formatPrice = (price) => {
     return "Price on request";
   }
 
-  const numericPrice = Number(price);
+  // Support numeric values and numeric strings
+  const normalizedPrice =
+    typeof price === "number"
+      ? price
+      : String(price).replace(/[₹,\s]/g, "");
 
-  if (Number.isNaN(numericPrice)) {
-    return price;
+  const numericPrice = Number(normalizedPrice);
+
+  if (!Number.isFinite(numericPrice)) {
+    return String(price);
   }
 
+  // Correct Indian Rupee symbol
+  const rupee = "\u20B9";
+
+  // Crores
   if (numericPrice >= 10000000) {
-    return `â‚¹${(
+    return `${rupee}${(
       numericPrice / 10000000
     ).toFixed(2)} Cr`;
   }
 
+  // Lakhs
   if (numericPrice >= 100000) {
-    return `â‚¹${(
+    return `${rupee}${(
       numericPrice / 100000
     ).toFixed(2)} L`;
   }
 
-  return `â‚¹${numericPrice.toLocaleString(
-    "en-IN"
-  )}`;
+  // Regular Indian number formatting
+  return `${rupee}${Math.round(
+    numericPrice
+  ).toLocaleString("en-IN")}`;
 };
 
 // =====================================================
@@ -1912,44 +1929,25 @@ function Index() {
                               mb: 2,
                             }}
                           >
-                            {property.bedrooms !==
-                              undefined && (
-                              <Typography
-                                variant="body2"
-                              >
-                                ðŸ›{" "}
-                                {
-                                  property.bedrooms
-                                }{" "}
-                                Beds
-                              </Typography>
-                            )}
+                            
+{property.bedrooms !== undefined && (
+  <Typography variant="body2">
+    🛏️ {property.bedrooms} Beds
+  </Typography>
+)}
 
-                            {property.bathrooms !==
-                              undefined && (
-                              <Typography
-                                variant="body2"
-                              >
-                                ðŸ›{" "}
-                                {
-                                  property.bathrooms
-                                }{" "}
-                                Baths
-                              </Typography>
-                            )}
+{property.bathrooms !== undefined && (
+  <Typography variant="body2">
+    🛁 {property.bathrooms} Baths
+  </Typography>
+)}
 
-                            {property.area !==
-                              undefined && (
-                              <Typography
-                                variant="body2"
-                              >
-                                ðŸ“{" "}
-                                {
-                                  property.area
-                                }{" "}
-                                sq.ft
-                              </Typography>
-                            )}
+{property.area !== undefined && (
+  <Typography variant="body2">
+    📐 {property.area} sq.ft
+  </Typography>
+)}
+```
                           </Box>
 
                           <Button
