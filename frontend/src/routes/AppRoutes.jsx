@@ -29,6 +29,7 @@ import AdminLayout from "../layouts/AdminLayout";
 // =====================================================
 
 import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminProfile from "../pages/admin/AdminProfile";
 import AdminUsers from "../pages/admin/AdminUsers";
 
 import AdminProperties from "../pages/admin/AdminProperties";
@@ -141,6 +142,18 @@ function AppRoutes() {
       />
 
 
+
+{/* Public property browsing — no login required */}
+<Route
+  path="/properties"
+  element={<CustomerProperties />}
+/>
+
+
+<Route
+  path="/properties/:id"
+  element={<CustomerPropertyDetails />}
+/>
       {/* =====================================================
           ADMIN PROTECTED ROUTES
       ===================================================== */}
@@ -168,6 +181,12 @@ function AppRoutes() {
             element={<AdminDashboard />}
           />
 
+{/* ADMIN PROFILE */}
+
+<Route
+  path="profile"
+  element={<AdminProfile />}
+/>
 
           {/* ADMIN USERS */}
 

@@ -99,7 +99,7 @@ function AdminPropertyDetails() {
   // =====================================================
 
   const BACKEND_URL =
-    "https://realestate-pro-backend.onrender.com";
+    "http://localhost:9090";
 
 
   // =====================================================

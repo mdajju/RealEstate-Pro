@@ -212,16 +212,16 @@ function AdminLayout() {
     if (
       image.startsWith("/uploads/")
     ) {
-      return `https://realestate-pro-backend.onrender.com${image}`;
+      return `http://localhost:9090${image}`;
     }
 
     if (
       image.startsWith("uploads/")
     ) {
-      return `https://realestate-pro-backend.onrender.com/${image}`;
+      return `http://localhost:9090/${image}`;
     }
 
-    return `https://realestate-pro-backend.onrender.com/uploads/${image}`;
+    return `http://localhost:9090/uploads/${image}`;
   };
 
 

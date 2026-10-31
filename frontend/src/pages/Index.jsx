@@ -53,7 +53,7 @@ import {
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://realestate-pro-backend.onrender.com/api";
+  "http://localhost:9090/api";
 
 const BACKEND_URL = API_BASE_URL.replace(/\/api\/?$/, "");
 // =====================================================
@@ -324,18 +324,18 @@ const formatPrice = (price) => {
   }
 
   if (numericPrice >= 10000000) {
-    return `₹${(
+    return `â‚¹${(
       numericPrice / 10000000
     ).toFixed(2)} Cr`;
   }
 
   if (numericPrice >= 100000) {
-    return `₹${(
+    return `â‚¹${(
       numericPrice / 100000
     ).toFixed(2)} L`;
   }
 
-  return `₹${numericPrice.toLocaleString(
+  return `â‚¹${numericPrice.toLocaleString(
     "en-IN"
   )}`;
 };
@@ -426,50 +426,8 @@ const extractArray = (response) => {
 // =====================================================
 
 const DEMO_PROPERTIES = [
-  {
-    id: "demo-1",
-    title: "Luxury 3BHK Apartment",
-    propertyTypeName: "APARTMENT",
-    cityName: "Hyderabad",
-    stateName: "Telangana",
-    price: 8500000,
-    bedrooms: 3,
-    bathrooms: 3,
-    area: 1800,
-    status: "AVAILABLE",
-    demo: true,
-    demoImage: FALLBACK_IMAGES[0],
-  },
 
-  {
-    id: "demo-2",
-    title: "Modern 4BHK Luxury House",
-    propertyTypeName: "HOUSE",
-    cityName: "Hyderabad",
-    stateName: "Telangana",
-    price: 12000000,
-    bedrooms: 4,
-    bathrooms: 4,
-    area: 2400,
-    status: "AVAILABLE",
-    demo: true,
-    demoImage: FALLBACK_IMAGES[1],
-  },
 
-  {
-    id: "demo-3",
-    title: "Luxury Villa",
-    propertyTypeName: "VILLA",
-    cityName: "Warangal",
-    stateName: "Telangana",
-    price: 8500000,
-    bedrooms: 3,
-    bathrooms: 3,
-    area: 2200,
-    status: "AVAILABLE",
-    demo: true,
-    demoImage: FALLBACK_IMAGES[2],
-  },
 
   {
     id: "demo-4",
@@ -1169,7 +1127,7 @@ function Index() {
               Discover apartments,
               villas, houses, plots
               and commercial properties
-              with RealEstate-Pro — a
+              with RealEstate-Pro â€” a
               complete digital real
               estate management platform.
             </Typography>
@@ -1959,7 +1917,7 @@ function Index() {
                               <Typography
                                 variant="body2"
                               >
-                                🛏{" "}
+                                ðŸ›{" "}
                                 {
                                   property.bedrooms
                                 }{" "}
@@ -1972,7 +1930,7 @@ function Index() {
                               <Typography
                                 variant="body2"
                               >
-                                🛁{" "}
+                                ðŸ›{" "}
                                 {
                                   property.bathrooms
                                 }{" "}
@@ -1985,7 +1943,7 @@ function Index() {
                               <Typography
                                 variant="body2"
                               >
-                                📐{" "}
+                                ðŸ“{" "}
                                 {
                                   property.area
                                 }{" "}
@@ -2692,7 +2650,7 @@ function Index() {
               fontSize: ".9rem",
             }}
           >
-            ©{" "}
+            Â©{" "}
             {new Date().getFullYear()}{" "}
             RealEstate-Pro.
             All rights reserved.

@@ -866,8 +866,8 @@ function CustomerProperties() {
     );
 
     navigate(
-      `/customer/properties/${propertyId}`
-    );
+  `/properties/${propertyId}`
+);
 
   };
 

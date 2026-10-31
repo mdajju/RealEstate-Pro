@@ -34,3 +34,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Local backup and duplicate project folders
+/RealEstate-Pro-route-fix/
+/backup-image-fix/
+/backup-property-image-fix/

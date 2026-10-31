@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import {
   getPropertyById,
+  getPropertyImages as fetchPropertyImages,
   addFavourite,
   getCustomerFavourites,
   removeFavourite,
@@ -18,17 +19,10 @@ function CustomerPropertyDetails() {
   // =========================================================
 
   const [property, setProperty] = useState(null);
-
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState("");
-
-  // Selected image
   const [selectedImage, setSelectedImage] = useState(null);
-
-  // Favourite
   const [isFavourite, setIsFavourite] = useState(false);
-
   const [favouriteLoading, setFavouriteLoading] = useState(false);
 
   // =========================================================
@@ -67,11 +61,7 @@ function CustomerPropertyDetails() {
       return null;
     }
 
-    return (
-      user.id ||
-      user.userId ||
-      user._id
-    );
+    return user.id || user.userId || user._id;
   };
 
   // =========================================================
@@ -88,58 +78,104 @@ function CustomerPropertyDetails() {
   }, [id]);
 
   // =========================================================
-  // LOAD PROPERTY FUNCTION
+  // LOAD PROPERTY AND PROPERTY IMAGES
   // =========================================================
 
   const loadProperty = async () => {
     try {
       setLoading(true);
       setError("");
+      setProperty(null);
+      setSelectedImage(null);
 
       console.log("Loading property details:", id);
 
+      // 1. Fetch property details
       const result = await getPropertyById(id);
 
-      console.log(
-        "Customer property details response:",
-        result
-      );
+      console.log("Customer property details response:", result);
 
-      if (result?.success) {
-        const propertyData = result.data;
+      if (!result?.success || !result?.data) {
+        setError(
+          result?.message || "Unable to load property details."
+        );
+        return;
+      }
 
-        setProperty(propertyData);
+      const propertyData = result.data;
 
-        // =====================================================
-        // SET FIRST IMAGE
-        // =====================================================
+      // 2. Use images included in the property response, if available
+      let propertyImages = Array.isArray(propertyData.images)
+        ? propertyData.images
+        : [];
+
+      // 3. Fetch images separately using the property ID
+      try {
+        console.log("Fetching images for property:", id);
+
+        const imageResult = await fetchPropertyImages(id);
+
+        console.log("Property images API response:", imageResult);
 
         if (
-          propertyData &&
-          Array.isArray(propertyData.images) &&
-          propertyData.images.length > 0
+          imageResult?.success &&
+          Array.isArray(imageResult.data)
         ) {
-          setSelectedImage(propertyData.images[0]);
-        } else {
-          setSelectedImage(null);
+          propertyImages = imageResult.data;
         }
-
-        // =====================================================
-        // CHECK FAVOURITE
-        // =====================================================
-
-        await checkFavouriteStatus(id);
-      } else {
-        setError(
-          result?.message ||
-            "Unable to load property details."
+      } catch (imageError) {
+        console.error(
+          "Unable to fetch property images:",
+          imageError?.response?.status,
+          imageError?.response?.data || imageError.message
         );
       }
+
+      // 4. Normalize image records
+      const normalizedImages = propertyImages
+        .filter((image) => image != null)
+        .filter(
+          (image) =>
+            typeof image !== "object" ||
+            image.active !== false
+        )
+        .map((image) => {
+          if (typeof image === "string") {
+            return { imageUrl: image };
+          }
+
+          return {
+            ...image,
+            imageUrl:
+              image.imageUrl ||
+              image.url ||
+              image.image ||
+              image.path ||
+              image.fileName ||
+              "",
+          };
+        })
+        .filter((image) => image.imageUrl);
+
+      // 5. Save the property with its images
+      const updatedProperty = {
+        ...propertyData,
+        images: normalizedImages,
+      };
+
+      setProperty(updatedProperty);
+
+      // 6. Select the first image automatically
+      setSelectedImage(normalizedImages[0] || null);
+
+      console.log("Final property images:", normalizedImages);
+
+      // 7. Check favourite status
+      await checkFavouriteStatus(id);
     } catch (err) {
-      console.error(
-        "Get property details error:",
-        err
-      );
+      console.error("Get property details error:", err);
+
+      setProperty(null);
 
       setError(
         err?.response?.data?.message ||
@@ -159,57 +195,37 @@ function CustomerPropertyDetails() {
       const userId = getLoggedInUserId();
 
       if (!userId) {
-        console.log(
-          "No logged-in user found."
-        );
+        console.log("No logged-in user found.");
         return;
       }
 
-      console.log(
-        "Checking favourite status for user:",
-        userId
-      );
+      console.log("Checking favourite status for user:", userId);
 
-      const response =
-        await getCustomerFavourites(userId);
+      const response = await getCustomerFavourites(userId);
 
-      console.log(
-        "Customer favourites response:",
-        response
-      );
+      console.log("Customer favourites response:", response);
 
       if (
         response?.success &&
         Array.isArray(response.data)
       ) {
-        const exists =
-          response.data.some((favourite) => {
-            const favouritePropertyId =
-              favourite.propertyId ||
-              favourite.property?.id ||
-              favourite.property?._id;
+        const exists = response.data.some((favourite) => {
+          const favouritePropertyId =
+            favourite.propertyId ||
+            favourite.property?.id ||
+            favourite.property?._id;
 
-            return (
-              String(favouritePropertyId) ===
-              String(propertyId)
-            );
-          });
+          return String(favouritePropertyId) === String(propertyId);
+        });
 
         setIsFavourite(exists);
 
-        console.log(
-          "Is favourite:",
-          exists
-        );
+        console.log("Is favourite:", exists);
       } else {
         setIsFavourite(false);
       }
     } catch (err) {
-      console.error(
-        "Check favourite status error:",
-        err
-      );
-
+      console.error("Check favourite status error:", err);
       setIsFavourite(false);
     }
   };
@@ -223,12 +239,8 @@ function CustomerPropertyDetails() {
       const userId = getLoggedInUserId();
 
       if (!userId) {
-        alert(
-          "Please login as a customer to use favourites."
-        );
-
+        alert("Please login as a customer to use favourites.");
         navigate("/login");
-
         return;
       }
 
@@ -239,84 +251,51 @@ function CustomerPropertyDetails() {
 
       setFavouriteLoading(true);
 
-      // =====================================================
       // REMOVE FAVOURITE
-      // =====================================================
-
       if (isFavourite) {
-        console.log(
-          "Removing favourite:",
+        console.log("Removing favourite:", property.id);
+
+        const response = await removeFavourite(
+          userId,
           property.id
         );
 
-        const response =
-          await removeFavourite(
-            userId,
-            property.id
-          );
-
-        console.log(
-          "Remove favourite response:",
-          response
-        );
+        console.log("Remove favourite response:", response);
 
         if (response?.success) {
           setIsFavourite(false);
-
-          alert(
-            "Property removed from favourites."
-          );
+          alert("Property removed from favourites.");
         } else {
           alert(
-            response?.message ||
-              "Unable to remove favourite."
+            response?.message || "Unable to remove favourite."
           );
         }
 
         return;
       }
 
-      // =====================================================
       // ADD FAVOURITE
-      // =====================================================
-
-      console.log(
-        "Adding favourite:",
-        property.id
-      );
+      console.log("Adding favourite:", property.id);
 
       const favouriteData = {
         userId: userId,
         propertyId: property.id,
       };
 
-      const response =
-        await addFavourite(
-          favouriteData
-        );
+      const response = await addFavourite(favouriteData);
 
-      console.log(
-        "Add favourite response:",
-        response
-      );
+      console.log("Add favourite response:", response);
 
       if (response?.success) {
         setIsFavourite(true);
-
-        alert(
-          "Property added to favourites."
-        );
+        alert("Property added to favourites.");
       } else {
         alert(
-          response?.message ||
-            "Unable to add favourite."
+          response?.message || "Unable to add favourite."
         );
       }
     } catch (err) {
-      console.error(
-        "Favourite operation error:",
-        err
-      );
+      console.error("Favourite operation error:", err);
 
       alert(
         err?.response?.data?.message ||
@@ -336,7 +315,7 @@ function CustomerPropertyDetails() {
       return null;
     }
 
-    // If image is an object
+    // Image object
     if (typeof image === "object") {
       image =
         image.imageUrl ||
@@ -351,17 +330,13 @@ function CustomerPropertyDetails() {
       return null;
     }
 
-    const imageValue =
-      String(image).trim();
+    const imageValue = String(image).trim();
 
     if (imageValue === "") {
       return null;
     }
 
-    // =======================================================
-    // COMPLETE HTTP URL
-    // =======================================================
-
+    // Complete HTTP or HTTPS URL
     if (
       imageValue.startsWith("http://") ||
       imageValue.startsWith("https://")
@@ -369,28 +344,17 @@ function CustomerPropertyDetails() {
       return imageValue;
     }
 
-    // =======================================================
-    // DATA URL
-    // =======================================================
-
-    if (
-      imageValue.startsWith("data:image")
-    ) {
+    // Data URL
+    if (imageValue.startsWith("data:image")) {
       return imageValue;
     }
 
-    // =======================================================
-    // ABSOLUTE BACKEND PATH
-    // =======================================================
-
+    // Absolute backend path
     if (imageValue.startsWith("/")) {
       return `${BACKEND_URL}${imageValue}`;
     }
 
-    // =======================================================
-    // BACKEND UPLOADS FOLDER
-    // =======================================================
-
+    // Relative image path
     return `${BACKEND_URL}/uploads/${imageValue}`;
   };
 
@@ -403,10 +367,6 @@ function CustomerPropertyDetails() {
       return [];
     }
 
-    // =======================================================
-    // images[]
-    // =======================================================
-
     if (
       Array.isArray(property.images) &&
       property.images.length > 0
@@ -414,10 +374,7 @@ function CustomerPropertyDetails() {
       return property.images;
     }
 
-    // =======================================================
-    // SINGLE IMAGE FIELDS
-    // =======================================================
-
+    // Fallback to single-image fields
     const singleImage =
       property.imageUrl ||
       property.image ||
@@ -450,14 +407,11 @@ function CustomerPropertyDetails() {
       return String(amount);
     }
 
-    return new Intl.NumberFormat(
-      "en-IN",
-      {
-        style: "currency",
-        currency: "INR",
-        maximumFractionDigits: 2,
-      }
-    ).format(numericAmount);
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 2,
+    }).format(numericAmount);
   };
 
   // =========================================================
@@ -470,9 +424,7 @@ function CustomerPropertyDetails() {
     }
 
     try {
-      return new Date(
-        dateValue
-      ).toLocaleString();
+      return new Date(dateValue).toLocaleString();
     } catch {
       return String(dateValue);
     }
@@ -487,7 +439,6 @@ function CustomerPropertyDetails() {
       return "Property";
     }
 
-    // Direct property type
     if (
       typeof property.propertyType === "string" &&
       property.propertyType.trim() !== ""
@@ -495,7 +446,6 @@ function CustomerPropertyDetails() {
       return property.propertyType;
     }
 
-    // propertyTypeName
     if (
       typeof property.propertyTypeName === "string" &&
       property.propertyTypeName.trim() !== ""
@@ -503,7 +453,6 @@ function CustomerPropertyDetails() {
       return property.propertyTypeName;
     }
 
-    // type
     if (
       typeof property.type === "string" &&
       property.type.trim() !== ""
@@ -511,7 +460,6 @@ function CustomerPropertyDetails() {
       return property.type;
     }
 
-    // Object
     if (
       property.propertyType &&
       typeof property.propertyType === "object"
@@ -524,33 +472,13 @@ function CustomerPropertyDetails() {
       );
     }
 
-    // =======================================================
-    // FALLBACK TO TITLE
-    // =======================================================
+    const title = String(property.title || "").toLowerCase();
 
-    const title = String(
-      property.title || ""
-    ).toLowerCase();
-
-    if (title.includes("apartment")) {
-      return "Apartment";
-    }
-
-    if (title.includes("villa")) {
-      return "Villa";
-    }
-
-    if (title.includes("house")) {
-      return "House";
-    }
-
-    if (title.includes("plot")) {
-      return "Plot";
-    }
-
-    if (title.includes("commercial")) {
-      return "Commercial";
-    }
+    if (title.includes("apartment")) return "Apartment";
+    if (title.includes("villa")) return "Villa";
+    if (title.includes("house")) return "House";
+    if (title.includes("plot")) return "Plot";
+    if (title.includes("commercial")) return "Commercial";
 
     return "Property";
   };
@@ -560,8 +488,7 @@ function CustomerPropertyDetails() {
   // =========================================================
 
   const getStatusStyle = (status) => {
-    const normalizedStatus =
-      String(status || "").toUpperCase();
+    const normalizedStatus = String(status || "").toUpperCase();
 
     switch (normalizedStatus) {
       case "AVAILABLE":
@@ -604,17 +531,9 @@ function CustomerPropertyDetails() {
     return (
       <div style={styles.page}>
         <div style={styles.loadingBox}>
-          <div style={styles.loadingIcon}>
-            🏠
-          </div>
-
-          <h2>
-            Property Details
-          </h2>
-
-          <p>
-            Loading property details...
-          </p>
+          <div style={styles.loadingIcon}>🏠</div>
+          <h2>Property Details</h2>
+          <p>Loading property details...</p>
         </div>
       </div>
     );
@@ -628,23 +547,13 @@ function CustomerPropertyDetails() {
     return (
       <div style={styles.page}>
         <div style={styles.errorBox}>
-          <h2>
-            Property Details
-          </h2>
-
-          <p>
-            {error ||
-              "Property not found."}
-          </p>
+          <h2>Property Details</h2>
+          <p>{error || "Property not found."}</p>
         </div>
 
         <button
           type="button"
-          onClick={() =>
-            navigate(
-              "/customer/properties"
-            )
-          }
+          onClick={() => navigate("/customer/properties")}
           style={styles.backButton}
         >
           ← Back to Properties
@@ -657,16 +566,9 @@ function CustomerPropertyDetails() {
   // PROPERTY DATA
   // =========================================================
 
-  const propertyStatus =
-    String(
-      property.status || ""
-    ).toUpperCase();
-
-  /*
-   * Some backend responses may not contain active.
-   * If active is undefined, consider the property active
-   * unless the status itself is INACTIVE.
-   */
+  const propertyStatus = String(
+    property.status || ""
+  ).toUpperCase();
 
   const isActive =
     property.active === undefined ||
@@ -675,11 +577,9 @@ function CustomerPropertyDetails() {
       : property.active === true;
 
   const isAvailable =
-    propertyStatus === "AVAILABLE" &&
-    isActive;
+    propertyStatus === "AVAILABLE" && isActive;
 
-  const images =
-    getPropertyImages();
+  const images = getPropertyImages();
 
   // =========================================================
   // PAGE
@@ -687,92 +587,49 @@ function CustomerPropertyDetails() {
 
   return (
     <div style={styles.page}>
-
-      {/* =====================================================
-          HEADER
-          ===================================================== */}
-
+      {/* HEADER */}
       <div style={styles.header}>
         <div>
-          <h1 style={styles.title}>
-            Property Details
-          </h1>
-
+          <h1 style={styles.title}>Property Details</h1>
           <p style={styles.subtitle}>
-            View complete information
-            about this property.
+            View complete information about this property.
           </p>
         </div>
 
         <button
           type="button"
-          onClick={() =>
-            navigate(
-              "/customer/properties"
-            )
-          }
+          onClick={() => navigate("/customer/properties")}
           style={styles.backButton}
         >
           ← Back to Properties
         </button>
       </div>
 
-      {/* =====================================================
-          ERROR
-          ===================================================== */}
-
+      {/* ERROR */}
       {error && (
-        <div style={styles.errorBox}>
-          {error}
-        </div>
+        <div style={styles.errorBox}>{error}</div>
       )}
 
-      {/* =====================================================
-          MAIN CARD
-          ===================================================== */}
-
+      {/* MAIN CARD */}
       <div style={styles.card}>
-
-        {/* ===================================================
-            IMAGE SECTION
-            =================================================== */}
-
+        {/* IMAGE SECTION */}
         <div style={styles.imageSection}>
-
-          {/* =================================================
-              MAIN IMAGE
-              ================================================= */}
-
-          {images.length > 0 &&
-          selectedImage ? (
-            <div
-              style={
-                styles.mainImageContainer
-              }
-            >
+          {/* MAIN IMAGE */}
+          {images.length > 0 && selectedImage ? (
+            <div style={styles.mainImageContainer}>
               <img
-                src={getImageUrl(
-                  selectedImage
-                )}
-                alt={
-                  property.title ||
-                  "Property"
-                }
+                src={getImageUrl(selectedImage)}
+                alt={property.title || "Property"}
                 style={styles.mainImage}
                 onError={(event) => {
                   console.error(
                     "Property image failed to load:",
-                    getImageUrl(
-                      selectedImage
-                    )
+                    getImageUrl(selectedImage)
                   );
 
-                  event.currentTarget.style.display =
-                    "none";
+                  event.currentTarget.style.display = "none";
 
-                  const parent =
-                    event.currentTarget
-                      .parentElement;
+                  const parent = event.currentTarget.parentElement;
 
                   if (parent) {
                     parent.innerHTML = `
@@ -787,12 +644,8 @@ function CustomerPropertyDetails() {
                         color:#666;
                         font-size:18px;
                       ">
-                        <div style="font-size:70px;">
-                          🏠
-                        </div>
-                        <div>
-                          Property image unavailable
-                        </div>
+                        <div style="font-size:70px;">🏠</div>
+                        <div>Property image unavailable</div>
                       </div>
                     `;
                   }
@@ -800,632 +653,272 @@ function CustomerPropertyDetails() {
               />
             </div>
           ) : (
-            <div
-              style={
-                styles.mainImagePlaceholder
-              }
-            >
-              <div
-                style={
-                  styles.placeholderIcon
-                }
-              >
-                🏠
-              </div>
-
-              <p>
-                No property image available
-              </p>
+            <div style={styles.mainImagePlaceholder}>
+              <div style={styles.placeholderIcon}>🏠</div>
+              <p>No property image available</p>
             </div>
           )}
 
-          {/* =================================================
-              IMAGE THUMBNAILS
-              ================================================= */}
-
+          {/* IMAGE THUMBNAILS */}
           {images.length > 1 && (
-            <div
-              style={
-                styles.thumbnailContainer
-              }
-            >
-              {images.map(
-                (image, index) => {
-                  const imageUrl =
-                    getImageUrl(
-                      image
-                    );
+            <div style={styles.thumbnailContainer}>
+              {images.map((image, index) => {
+                const imageUrl = getImageUrl(image);
 
-                  const isSelected =
-                    selectedImage ===
-                    image;
+                const isSelected =
+                  selectedImage === image;
 
-                  return (
-                    <button
-                      key={`${imageUrl}-${index}`}
-                      type="button"
-                      onClick={() =>
-                        setSelectedImage(
-                          image
-                        )
-                      }
-                      style={{
-                        ...styles.thumbnailButton,
-                        ...(isSelected
-                          ? styles.selectedThumbnail
-                          : {}),
-                      }}
-                    >
-                      {imageUrl ? (
-                        <img
-                          src={imageUrl}
-                          alt={`Property ${
-                            index + 1
-                          }`}
-                          style={
-                            styles.thumbnailImage
+                return (
+                  <button
+                    key={`${imageUrl}-${index}`}
+                    type="button"
+                    onClick={() => setSelectedImage(image)}
+                    style={{
+                      ...styles.thumbnailButton,
+                      ...(isSelected
+                        ? styles.selectedThumbnail
+                        : {}),
+                    }}
+                  >
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={`Property ${index + 1}`}
+                        style={styles.thumbnailImage}
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
+
+                          const parent =
+                            event.currentTarget.parentElement;
+
+                          if (parent) {
+                            parent.innerHTML = "🏠";
                           }
-                          onError={(
-                            event
-                          ) => {
-                            event.currentTarget.style.display =
-                              "none";
-
-                            const parent =
-                              event
-                                .currentTarget
-                                .parentElement;
-
-                            if (parent) {
-                              parent.innerHTML =
-                                "🏠";
-                            }
-                          }}
-                        />
-                      ) : (
-                        "🏠"
-                      )}
-                    </button>
-                  );
-                }
-              )}
+                        }}
+                      />
+                    ) : (
+                      "🏠"
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
 
-        {/* ===================================================
-            PROPERTY HEADER
-            =================================================== */}
-
+        {/* PROPERTY HEADER */}
         <div style={styles.propertyHeader}>
           <div>
-            <h2
-              style={
-                styles.propertyTitle
-              }
-            >
-              {property.title ||
-                "Property"}
+            <h2 style={styles.propertyTitle}>
+              {property.title || "Property"}
             </h2>
 
-            <p
-              style={
-                styles.propertyId
-              }
-            >
-              Property ID:{" "}
-              {property.id || "-"}
+            <p style={styles.propertyId}>
+              Property ID: {property.id || "-"}
             </p>
           </div>
 
           <span
             style={{
               ...styles.status,
-              ...getStatusStyle(
-                property.status
-              ),
+              ...getStatusStyle(property.status),
             }}
           >
             {property.status || "-"}
           </span>
         </div>
 
-        {/* ===================================================
-            DESCRIPTION
-            =================================================== */}
-
+        {/* DESCRIPTION */}
         <div style={styles.section}>
-          <h3
-            style={
-              styles.sectionTitle
-            }
-          >
-            Description
-          </h3>
-
-          <p
-            style={
-              styles.description
-            }
-          >
-            {property.description ||
-              "No description available."}
+          <h3 style={styles.sectionTitle}>Description</h3>
+          <p style={styles.description}>
+            {property.description || "No description available."}
           </p>
         </div>
 
-        {/* ===================================================
-            PROPERTY INFORMATION
-            =================================================== */}
-
+        {/* PROPERTY INFORMATION */}
         <div style={styles.section}>
-          <h3
-            style={
-              styles.sectionTitle
-            }
-          >
+          <h3 style={styles.sectionTitle}>
             Property Information
           </h3>
 
-          <div
-            style={
-              styles.detailsGrid
-            }
-          >
-            {/* PRICE */}
-
-            <div
-              style={
-                styles.detailItem
-              }
-            >
-              <span
-                style={
-                  styles.detailLabel
-                }
-              >
-                Price
-              </span>
-
-              <span
-                style={styles.price}
-              >
-                {formatAmount(
-                  property.price
-                )}
+          <div style={styles.detailsGrid}>
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>Price</span>
+              <span style={styles.price}>
+                {formatAmount(property.price)}
               </span>
             </div>
 
-            {/* AREA */}
-
-            <div
-              style={
-                styles.detailItem
-              }
-            >
-              <span
-                style={
-                  styles.detailLabel
-                }
-              >
-                Area
-              </span>
-
-              <span
-                style={
-                  styles.detailValue
-                }
-              >
-                {property.area !==
-                  undefined &&
-                property.area !==
-                  null
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>Area</span>
+              <span style={styles.detailValue}>
+                {property.area !== undefined &&
+                property.area !== null
                   ? `${property.area} sq.ft`
                   : "-"}
               </span>
             </div>
 
-            {/* PROPERTY TYPE */}
-
-            <div
-              style={
-                styles.detailItem
-              }
-            >
-              <span
-                style={
-                  styles.detailLabel
-                }
-              >
-                Property Type
-              </span>
-
-              <span
-                style={
-                  styles.detailValue
-                }
-              >
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>Property Type</span>
+              <span style={styles.detailValue}>
                 {getPropertyType()}
               </span>
             </div>
 
-            {/* BEDROOMS */}
-
-            <div
-              style={
-                styles.detailItem
-              }
-            >
-              <span
-                style={
-                  styles.detailLabel
-                }
-              >
-                Bedrooms
-              </span>
-
-              <span
-                style={
-                  styles.detailValue
-                }
-              >
-                {property.bedrooms !==
-                  undefined &&
-                property.bedrooms !==
-                  null
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>Bedrooms</span>
+              <span style={styles.detailValue}>
+                {property.bedrooms !== undefined &&
+                property.bedrooms !== null
                   ? `🛏️ ${property.bedrooms}`
                   : "-"}
               </span>
             </div>
 
-            {/* BATHROOMS */}
-
-            <div
-              style={
-                styles.detailItem
-              }
-            >
-              <span
-                style={
-                  styles.detailLabel
-                }
-              >
-                Bathrooms
-              </span>
-
-              <span
-                style={
-                  styles.detailValue
-                }
-              >
-                {property.bathrooms !==
-                  undefined &&
-                property.bathrooms !==
-                  null
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>Bathrooms</span>
+              <span style={styles.detailValue}>
+                {property.bathrooms !== undefined &&
+                property.bathrooms !== null
                   ? `🛁 ${property.bathrooms}`
                   : "-"}
               </span>
             </div>
 
-            {/* FACING */}
-
-            <div
-              style={
-                styles.detailItem
-              }
-            >
-              <span
-                style={
-                  styles.detailLabel
-                }
-              >
-                Facing
-              </span>
-
-              <span
-                style={
-                  styles.detailValue
-                }
-              >
-                {property.facing ||
-                  "-"}
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>Facing</span>
+              <span style={styles.detailValue}>
+                {property.facing || "-"}
               </span>
             </div>
 
-            {/* STATUS */}
-
-            <div
-              style={
-                styles.detailItem
-              }
-            >
-              <span
-                style={
-                  styles.detailLabel
-                }
-              >
-                Status
-              </span>
-
-              <span
-                style={
-                  styles.detailValue
-                }
-              >
-                {property.status ||
-                  "-"}
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>Status</span>
+              <span style={styles.detailValue}>
+                {property.status || "-"}
               </span>
             </div>
 
-            {/* ACTIVE */}
-
-            <div
-              style={
-                styles.detailItem
-              }
-            >
-              <span
-                style={
-                  styles.detailLabel
-                }
-              >
-                Active
-              </span>
-
-              <span
-                style={
-                  styles.detailValue
-                }
-              >
-                {isActive
-                  ? "Yes"
-                  : "No"}
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>Active</span>
+              <span style={styles.detailValue}>
+                {isActive ? "Yes" : "No"}
               </span>
             </div>
 
-            {/* CREATED */}
-
-            <div
-              style={
-                styles.detailItem
-              }
-            >
-              <span
-                style={
-                  styles.detailLabel
-                }
-              >
-                Created At
-              </span>
-
-              <span
-                style={
-                  styles.detailValue
-                }
-              >
-                {formatDateTime(
-                  property.createdAt
-                )}
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>Created At</span>
+              <span style={styles.detailValue}>
+                {formatDateTime(property.createdAt)}
               </span>
             </div>
 
-            {/* UPDATED */}
-
-            <div
-              style={
-                styles.detailItem
-              }
-            >
-              <span
-                style={
-                  styles.detailLabel
-                }
-              >
-                Updated At
-              </span>
-
-              <span
-                style={
-                  styles.detailValue
-                }
-              >
-                {formatDateTime(
-                  property.updatedAt
-                )}
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>Updated At</span>
+              <span style={styles.detailValue}>
+                {formatDateTime(property.updatedAt)}
               </span>
             </div>
           </div>
         </div>
 
-        {/* ===================================================
-            AMENITIES
-            =================================================== */}
+        {/* AMENITIES */}
+        {Array.isArray(property.amenities) &&
+          property.amenities.length > 0 && (
+            <div style={styles.section}>
+              <h3 style={styles.sectionTitle}>Amenities</h3>
 
-        {Array.isArray(
-          property.amenities
-        ) &&
-        property.amenities.length >
-          0 && (
-          <div
-            style={
-              styles.section
-            }
-          >
-            <h3
-              style={
-                styles.sectionTitle
-              }
-            >
-              Amenities
-            </h3>
-
-            <div
-              style={
-                styles.amenitiesContainer
-              }
-            >
-              {property.amenities.map(
-                (
-                  amenity,
-                  index
-                ) => (
+              <div style={styles.amenitiesContainer}>
+                {property.amenities.map((amenity, index) => (
                   <span
                     key={`${amenity}-${index}`}
-                    style={
-                      styles.amenity
-                    }
+                    style={styles.amenity}
                   >
                     ✓ {amenity}
                   </span>
-                )
-              )}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* ===================================================
-            LOCATION
-            =================================================== */}
-
+        {/* LOCATION */}
         <div style={styles.section}>
-          <h3
-            style={
-              styles.sectionTitle
-            }
-          >
-            Location
-          </h3>
+          <h3 style={styles.sectionTitle}>Location</h3>
 
-          <div
-            style={
-              styles.locationBox
-            }
-          >
+          <div style={styles.locationBox}>
             <p>
-              <strong>
-                Address:
-              </strong>{" "}
-              {property.address ||
-                "-"}
+              <strong>Address:</strong>{" "}
+              {property.address || "-"}
             </p>
 
             {property.cityName && (
               <p>
-                <strong>
-                  City:
-                </strong>{" "}
-                {property.cityName}
+                <strong>City:</strong> {property.cityName}
               </p>
             )}
 
             {property.stateName && (
               <p>
-                <strong>
-                  State:
-                </strong>{" "}
-                {property.stateName}
+                <strong>State:</strong> {property.stateName}
               </p>
             )}
 
-            {property.latitude !==
-              undefined &&
-              property.latitude !==
-                null && (
+            {property.latitude !== undefined &&
+              property.latitude !== null && (
                 <p>
-                  <strong>
-                    Latitude:
-                  </strong>{" "}
+                  <strong>Latitude:</strong>{" "}
                   {property.latitude}
                 </p>
               )}
 
-            {property.longitude !==
-              undefined &&
-              property.longitude !==
-                null && (
+            {property.longitude !== undefined &&
+              property.longitude !== null && (
                 <p>
-                  <strong>
-                    Longitude:
-                  </strong>{" "}
+                  <strong>Longitude:</strong>{" "}
                   {property.longitude}
                 </p>
               )}
           </div>
         </div>
 
-        {/* ===================================================
-            OWNER INFORMATION
-            =================================================== */}
-
-        {(property.ownerId ||
-          property.ownerName) && (
-          <div
-            style={
-              styles.section
-            }
-          >
-            <h3
-              style={
-                styles.sectionTitle
-              }
-            >
+        {/* OWNER INFORMATION */}
+        {(property.ownerId || property.ownerName) && (
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>
               Owner Information
             </h3>
 
             {property.ownerId && (
               <p>
-                <strong>
-                  Owner ID:
-                </strong>{" "}
-                {property.ownerId}
+                <strong>Owner ID:</strong> {property.ownerId}
               </p>
             )}
 
             {property.ownerName && (
               <p>
-                <strong>
-                  Owner Name:
-                </strong>{" "}
+                <strong>Owner Name:</strong>{" "}
                 {property.ownerName}
               </p>
             )}
           </div>
         )}
 
-        {/* ===================================================
-            ACTIONS
-            =================================================== */}
-
-        <div
-          style={
-            styles.actionContainer
-          }
-        >
-          {/* BACK */}
-
+        {/* ACTIONS */}
+        <div style={styles.actionContainer}>
           <button
             type="button"
-            onClick={() =>
-              navigate(
-                "/customer/properties"
-              )
-            }
-            style={
-              styles.secondaryButton
-            }
+            onClick={() => navigate("/customer/properties")}
+            style={styles.secondaryButton}
           >
             ← Back
           </button>
 
-          {/* FAVOURITE */}
-
           <button
             type="button"
-            onClick={
-              handleFavourite
-            }
-            disabled={
-              favouriteLoading
-            }
+            onClick={handleFavourite}
+            disabled={favouriteLoading}
             style={{
               ...styles.favouriteButton,
               ...(isFavourite
@@ -1439,11 +932,9 @@ function CustomerPropertyDetails() {
             {favouriteLoading
               ? "Processing..."
               : isFavourite
-              ? "❤️ Remove Favourite"
-              : "♡ Add to Favourite"}
+                ? "❤️ Remove Favourite"
+                : "♡ Add to Favourite"}
           </button>
-
-          {/* BOOK */}
 
           {isAvailable && (
             <button
@@ -1453,9 +944,7 @@ function CustomerPropertyDetails() {
                   `/customer/properties/${property.id}/book`
                 )
               }
-              style={
-                styles.bookButton
-              }
+              style={styles.bookButton}
             >
               📅 Book Property
             </button>
@@ -1506,13 +995,8 @@ const styles = {
     padding: "30px",
     maxWidth: "1100px",
     margin: "0 auto",
-    boxShadow:
-      "0 2px 10px rgba(0,0,0,0.08)",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
   },
-
-  // =======================================================
-  // IMAGE
-  // =======================================================
 
   imageSection: {
     marginBottom: "30px",
@@ -1583,10 +1067,6 @@ const styles = {
     display: "block",
   },
 
-  // =======================================================
-  // PROPERTY HEADER
-  // =======================================================
-
   propertyHeader: {
     display: "flex",
     justifyContent: "space-between",
@@ -1594,8 +1074,7 @@ const styles = {
     gap: "20px",
     flexWrap: "wrap",
     paddingBottom: "20px",
-    borderBottom:
-      "1px solid #eee",
+    borderBottom: "1px solid #eee",
   },
 
   propertyTitle: {
@@ -1618,15 +1097,10 @@ const styles = {
     fontWeight: "700",
   },
 
-  // =======================================================
-  // SECTIONS
-  // =======================================================
-
   section: {
     marginTop: "28px",
     paddingBottom: "25px",
-    borderBottom:
-      "1px solid #eee",
+    borderBottom: "1px solid #eee",
   },
 
   sectionTitle: {
@@ -1642,14 +1116,9 @@ const styles = {
     fontSize: "15px",
   },
 
-  // =======================================================
-  // DETAILS
-  // =======================================================
-
   detailsGrid: {
     display: "grid",
-    gridTemplateColumns:
-      "repeat(2, minmax(0, 1fr))",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
     gap: "22px 30px",
   },
 
@@ -1676,10 +1145,6 @@ const styles = {
     color: "#198754",
   },
 
-  // =======================================================
-  // AMENITIES
-  // =======================================================
-
   amenitiesContainer: {
     display: "flex",
     flexWrap: "wrap",
@@ -1689,17 +1154,12 @@ const styles = {
   amenity: {
     backgroundColor: "#eef4ff",
     color: "#2563eb",
-    border:
-      "1px solid #c7d7fe",
+    border: "1px solid #c7d7fe",
     padding: "8px 13px",
     borderRadius: "20px",
     fontSize: "14px",
     fontWeight: "500",
   },
-
-  // =======================================================
-  // LOCATION
-  // =======================================================
 
   locationBox: {
     backgroundColor: "#f8f9fa",
@@ -1708,10 +1168,6 @@ const styles = {
     color: "#444",
     lineHeight: "1.6",
   },
-
-  // =======================================================
-  // ACTIONS
-  // =======================================================
 
   actionContainer: {
     display: "flex",
@@ -1722,8 +1178,7 @@ const styles = {
 
   backButton: {
     padding: "10px 18px",
-    border:
-      "1px solid #ccc",
+    border: "1px solid #ccc",
     borderRadius: "6px",
     backgroundColor: "#fff",
     color: "#333",
@@ -1733,8 +1188,7 @@ const styles = {
 
   secondaryButton: {
     padding: "11px 22px",
-    border:
-      "1px solid #ccc",
+    border: "1px solid #ccc",
     borderRadius: "6px",
     backgroundColor: "#fff",
     color: "#333",
@@ -1744,8 +1198,7 @@ const styles = {
 
   favouriteButton: {
     padding: "11px 22px",
-    border:
-      "1px solid #dc3545",
+    border: "1px solid #dc3545",
     borderRadius: "6px",
     backgroundColor: "#fff",
     color: "#dc3545",
@@ -1775,14 +1228,9 @@ const styles = {
     fontWeight: "600",
   },
 
-  // =======================================================
-  // LOADING
-  // =======================================================
-
   loadingBox: {
     backgroundColor: "#fff",
-    border:
-      "1px solid #ddd",
+    border: "1px solid #ddd",
     borderRadius: "10px",
     padding: "50px",
     textAlign: "center",
@@ -1795,15 +1243,10 @@ const styles = {
     marginBottom: "15px",
   },
 
-  // =======================================================
-  // ERROR
-  // =======================================================
-
   errorBox: {
     backgroundColor: "#f8d7da",
     color: "#721c24",
-    border:
-      "1px solid #f5c6cb",
+    border: "1px solid #f5c6cb",
     borderRadius: "6px",
     padding: "15px",
     marginBottom: "20px",

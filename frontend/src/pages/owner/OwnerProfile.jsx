@@ -56,7 +56,7 @@ import {
 // BACKEND URL
 // =====================================================
 
-const BACKEND_URL = "https://realestate-pro-backend.onrender.com";
+const BACKEND_URL = "http://localhost:9090";
 
 // =====================================================
 // OWNER PROFILE
